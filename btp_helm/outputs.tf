@@ -1,0 +1,4 @@
+output "status" {
+  value = "pending"
+}
+

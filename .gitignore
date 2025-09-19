@@ -1,0 +1,45 @@
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+*.tfplan
+terraform.tfvars
+*.tfvars
+!examples/*.tfvars
+
+# Keep the dependency lockfile committed
+!.terraform.lock.hcl
+
+# Terragrunt (if used)
+.terragrunt-cache/
+
+# Helm & k8s local artifacts
+charts/
+Chart.lock
+values.generated.yaml
+kubeconfig
+.kube/
+*.kubeconfig
+
+# Logs
+*.log
+
+# OS / Editors
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Node/JS (if tooling is added later)
+node_modules/
+dist/
+coverage/
+
+# Python (scripts)
+__pycache__/
+*.pyc
+
