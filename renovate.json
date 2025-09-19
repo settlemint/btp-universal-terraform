@@ -1,0 +1,97 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:base"],
+  "labels": ["dependencies"],
+  "rangeStrategy": "bump",
+  "timezone": "UTC",
+  "enabledManagers": ["terraform", "regex"],
+  "packageRules": [
+    {
+      "matchManagers": ["terraform"],
+      "semanticCommitType": "chore",
+      "semanticCommitScope": "deps"
+    },
+    {
+      "matchManagers": ["regex"],
+      "semanticCommitType": "chore",
+      "semanticCommitScope": "helm"
+    },
+    {
+      "matchManagers": ["terraform", "regex"],
+      "matchUpdateTypes": ["patch"],
+      "automerge": true,
+      "automergeType": "branch"
+    }
+  ],
+  "regexManagers": [
+    {
+      "fileMatch": ["^deps/ingress_tls/variables\\.tf$"],
+      "matchStrings": [
+        "variable\\s+\"nginx_chart_version\"[\\s\\S]*?default\\s*=\\s*\"(?<currentValue>[^\"]+)\"",
+        "variable\\s+\"cert_manager_chart_version\"[\\s\\S]*?default\\s*=\\s*\"(?<currentValue>[^\"]+)\""
+      ],
+      "datasourceTemplate": "helm",
+      "versioningTemplate": "helm",
+      "extractVersionTemplate": "^(?<version>.*)$",
+      "registryUrlTemplate": "{{#if (matchString 'nginx_chart_version')}}https://kubernetes.github.io/ingress-nginx{{else}}https://charts.jetstack.io{{/if}}",
+      "depNameTemplate": "{{#if (matchString 'nginx_chart_version')}}ingress-nginx/ingress-nginx{{else}}jetstack/cert-manager{{/if}}"
+    },
+    {
+      "fileMatch": ["^deps/postgres/variables\\.tf$"],
+      "matchStrings": [
+        "variable\\s+\"chart_version\"[\\s\\S]*?default\\s*=\\s*\"(?<currentValue>[^\"]+)\""
+      ],
+      "datasourceTemplate": "helm",
+      "registryUrlTemplate": "https://charts.bitnami.com/bitnami",
+      "depNameTemplate": "bitnami/postgresql"
+    },
+    {
+      "fileMatch": ["^deps/redis/variables\\.tf$"],
+      "matchStrings": [
+        "variable\\s+\"chart_version\"[\\s\\S]*?default\\s*=\\s*\"(?<currentValue>[^\"]+)\""
+      ],
+      "datasourceTemplate": "helm",
+      "registryUrlTemplate": "https://charts.bitnami.com/bitnami",
+      "depNameTemplate": "bitnami/redis"
+    },
+    {
+      "fileMatch": ["^deps/object_storage/variables\\.tf$"],
+      "matchStrings": [
+        "variable\\s+\"chart_version\"[\\s\\S]*?default\\s*=\\s*\"(?<currentValue>[^\"]+)\""
+      ],
+      "datasourceTemplate": "helm",
+      "registryUrlTemplate": "https://charts.bitnami.com/bitnami",
+      "depNameTemplate": "bitnami/minio"
+    },
+    {
+      "fileMatch": ["^deps/metrics_logs/variables\\.tf$"],
+      "matchStrings": [
+        "variable\\s+\"kp_stack_chart_version\"[\\s\\S]*?default\\s*=\\s*\"(?<currentValue>[^\"]+)\"",
+        "variable\\s+\"loki_stack_chart_version\"[\\s\\S]*?default\\s*=\\s*\"(?<currentValue>[^\"]+)\""
+      ],
+      "datasourceTemplate": "helm",
+      "versioningTemplate": "helm",
+      "registryUrlTemplate": "{{#if (matchString 'kp_stack_chart_version')}}https://prometheus-community.github.io/helm-charts{{else}}https://grafana.github.io/helm-charts{{/if}}",
+      "depNameTemplate": "{{#if (matchString 'kp_stack_chart_version')}}prometheus-community/kube-prometheus-stack{{else}}grafana/loki-stack{{/if}}"
+    },
+    {
+      "fileMatch": ["^deps/oauth/variables\\.tf$"],
+      "matchStrings": [
+        "variable\\s+\"chart_version\"[\\s\\S]*?default\\s*=\\s*\"(?<currentValue>[^\"]+)\""
+      ],
+      "datasourceTemplate": "helm",
+      "registryUrlTemplate": "https://charts.bitnami.com/bitnami",
+      "depNameTemplate": "bitnami/keycloak"
+    },
+    {
+      "fileMatch": ["^deps/secrets/variables\\.tf$"],
+      "matchStrings": [
+        "variable\\s+\"chart_version\"[\\s\\S]*?default\\s*=\\s*\"(?<currentValue>[^\"]+)\""
+      ],
+      "datasourceTemplate": "helm",
+      "registryUrlTemplate": "https://helm.releases.hashicorp.com",
+      "depNameTemplate": "hashicorp/vault"
+    }
+  ]
+}
+
