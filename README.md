@@ -4,9 +4,9 @@
   <p align="center">
     ✨ <a href="https://settlemint.com">https://settlemint.com</a> ✨
     <br/>
-    Standardized, auditable Terraform to provision platform dependencies and deploy SettleMint BTP.
+    Standardized, auditable Terraform to provision platform dependencies and deploy SettleMint BTP across clouds.
     <br/>
-    Helm-first on OrbStack for local; extensible to AWS, Azure, and GCP.
+    Works with AWS, Azure, GCP, and any Kubernetes cluster. Mix managed, Kubernetes (Helm), or bring‑your‑own backends per dependency.
   </p>
 </p>
 <br/>
@@ -22,36 +22,36 @@
 
 ## Introduction
 
-This repository provides a consistent Terraform flow to provision BTP platform dependencies and install the BTP Helm chart. It standardizes deployment across environments, with a Helm-first workflow that runs great on OrbStack/local and a structure that cleanly extends to cloud deployments (AWS, Azure, GCP) and BYO integrations.
+This repository provides a consistent Terraform flow to provision BTP platform dependencies and install the BTP Helm chart. Use the same module to deploy to AWS, Azure, and GCP or any existing Kubernetes cluster. Each dependency can be provided via a managed cloud service, installed inside Kubernetes (Helm), or wired to your own (BYO) endpoints.
 
 ### Key Features
 
-- 🧭 Unified module layout for dependencies following a three‑mode pattern (k8s | managed | byo)
+- 🧭 Unified module layout for dependencies with three modes: k8s (Helm) | managed (cloud) | byo (external)
 - 🪄 One-command apply with `-var-file` environment configs
 - 🔐 Secure defaults: random passwords, TLS issuer, sensitive outputs
 - 📈 Observability stack via kube-prometheus-stack and Loki
 - 🧪 Preflight checks to validate local cluster and Helm repos
 
-## Local development
+## Quick Start
 
 ### One‑liner Install
 
-Run a complete local install (preflight + init + apply) with one command:
-
-```bash
-bash scripts/install.sh
-```
-
-Optionally specify a different vars file:
+Run a full install (preflight + init + apply) using your chosen tfvars:
 
 ```bash
 bash scripts/install.sh examples/generic-orbstack-dev.tfvars
 ```
 
-### Setting up (OrbStack)
+Replace the tfvars with your environment file (e.g., `examples/aws-dev.tfvars`, `examples/azure-dev.tfvars`, `examples/gcp-dev.tfvars`, or a custom file).
 
 ```bash
-# Preflight checks and helm repo setup
+bash scripts/install.sh examples/generic-orbstack-dev.tfvars
+```
+
+### Manual Apply
+
+```bash
+# Optional: Preflight checks (kubectl/helm, helm repos)
 ./scripts/preflight.sh
 
 # Initialize Terraform
@@ -62,7 +62,7 @@ terraform plan  -var-file examples/generic-orbstack-dev.tfvars
 terraform apply -var-file examples/generic-orbstack-dev.tfvars
 ```
 
-### Typical development workflow
+## Typical development workflow
 
 - Edit module code under `./deps/*` or root variables/outputs
 - Format and validate:
@@ -79,7 +79,7 @@ terraform apply -var-file examples/generic-orbstack-dev.tfvars
 terraform destroy -var-file examples/generic-orbstack-dev.tfvars
 ```
 
-### Smoke checks (local)
+### Smoke checks
 
 - Ingress controller ready; cert-manager `ClusterIssuer` exists
 - Postgres/Redis services resolvable in-cluster; MinIO UI/API reachable
@@ -95,9 +95,9 @@ terraform destroy -var-file examples/generic-orbstack-dev.tfvars
 
 - Root module wires dependency modules and normalizes outputs
 - Modules:
-  - `./deps/{postgres,redis,object_storage,oauth,secrets,ingress_tls,metrics_logs}`
-  - `./btp_helm` (maps normalized outputs to BTP chart values)
-- Examples in `./examples/*.tfvars` (start with `generic-orbstack-dev.tfvars`)
+  - `./deps/{postgres,redis,object_storage,oauth,secrets,ingress_tls,metrics_logs}` implement the three-mode pattern
+  - `./btp_helm` maps normalized outputs to BTP chart values
+- Examples in `./examples/*.tfvars` (generic examples included; cloud examples can be added per team)
 
 ## Quality Assurance
 
