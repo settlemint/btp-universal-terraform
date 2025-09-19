@@ -30,8 +30,8 @@
         "variable\\s+\"nginx_chart_version\"[\\s\\S]*?default\\s*=\\s*\"(?<currentValue>[^\"]+)\""
       ],
       "datasourceTemplate": "helm",
-      "registryUrlTemplate": "https://kubernetes.github.io/ingress-nginx",
-      "depNameTemplate": "ingress-nginx/ingress-nginx"
+      "registryUrlsTemplate": ["https://kubernetes.github.io/ingress-nginx"],
+      "packageNameTemplate": "ingress-nginx/ingress-nginx"
     },
     {
       "fileMatch": ["^deps/ingress_tls/variables\\.tf$"],
@@ -39,8 +39,8 @@
         "variable\\s+\"cert_manager_chart_version\"[\\s\\S]*?default\\s*=\\s*\"(?<currentValue>[^\"]+)\""
       ],
       "datasourceTemplate": "helm",
-      "registryUrlTemplate": "https://charts.jetstack.io",
-      "depNameTemplate": "jetstack/cert-manager"
+      "registryUrlsTemplate": ["https://charts.jetstack.io"],
+      "packageNameTemplate": "jetstack/cert-manager"
     },
     {
       "fileMatch": ["^deps/postgres/variables\\.tf$"],
@@ -48,8 +48,8 @@
         "variable\\s+\"chart_version\"[\\s\\S]*?default\\s*=\\s*\"(?<currentValue>[^\"]+)\""
       ],
       "datasourceTemplate": "helm",
-      "registryUrlTemplate": "https://charts.bitnami.com/bitnami",
-      "depNameTemplate": "bitnami/postgresql"
+      "registryUrlsTemplate": ["https://charts.bitnami.com/bitnami"],
+      "packageNameTemplate": "bitnami/postgresql"
     },
     {
       "fileMatch": ["^deps/redis/variables\\.tf$"],
@@ -57,8 +57,8 @@
         "variable\\s+\"chart_version\"[\\s\\S]*?default\\s*=\\s*\"(?<currentValue>[^\"]+)\""
       ],
       "datasourceTemplate": "helm",
-      "registryUrlTemplate": "https://charts.bitnami.com/bitnami",
-      "depNameTemplate": "bitnami/redis"
+      "registryUrlsTemplate": ["https://charts.bitnami.com/bitnami"],
+      "packageNameTemplate": "bitnami/redis"
     },
     {
       "fileMatch": ["^deps/object_storage/variables\\.tf$"],
@@ -66,8 +66,8 @@
         "variable\\s+\"chart_version\"[\\s\\S]*?default\\s*=\\s*\"(?<currentValue>[^\"]+)\""
       ],
       "datasourceTemplate": "helm",
-      "registryUrlTemplate": "https://charts.bitnami.com/bitnami",
-      "depNameTemplate": "bitnami/minio"
+      "registryUrlsTemplate": ["https://charts.bitnami.com/bitnami"],
+      "packageNameTemplate": "bitnami/minio"
     },
     {
       "fileMatch": ["^deps/metrics_logs/variables\\.tf$"],
@@ -75,8 +75,8 @@
         "variable\\s+\"kp_stack_chart_version\"[\\s\\S]*?default\\s*=\\s*\"(?<currentValue>[^\"]+)\""
       ],
       "datasourceTemplate": "helm",
-      "registryUrlTemplate": "https://prometheus-community.github.io/helm-charts",
-      "depNameTemplate": "prometheus-community/kube-prometheus-stack"
+      "registryUrlsTemplate": ["https://prometheus-community.github.io/helm-charts"],
+      "packageNameTemplate": "prometheus-community/kube-prometheus-stack"
     },
     {
       "fileMatch": ["^deps/metrics_logs/variables\\.tf$"],
@@ -84,8 +84,8 @@
         "variable\\s+\"loki_stack_chart_version\"[\\s\\S]*?default\\s*=\\s*\"(?<currentValue>[^\"]+)\""
       ],
       "datasourceTemplate": "helm",
-      "registryUrlTemplate": "https://grafana.github.io/helm-charts",
-      "depNameTemplate": "grafana/loki-stack"
+      "registryUrlsTemplate": ["https://grafana.github.io/helm-charts"],
+      "packageNameTemplate": "grafana/loki-stack"
     },
     {
       "fileMatch": ["^deps/oauth/variables\\.tf$"],
@@ -93,8 +93,8 @@
         "variable\\s+\"chart_version\"[\\s\\S]*?default\\s*=\\s*\"(?<currentValue>[^\"]+)\""
       ],
       "datasourceTemplate": "helm",
-      "registryUrlTemplate": "https://charts.bitnami.com/bitnami",
-      "depNameTemplate": "bitnami/keycloak"
+      "registryUrlsTemplate": ["https://charts.bitnami.com/bitnami"],
+      "packageNameTemplate": "bitnami/keycloak"
     },
     {
       "fileMatch": ["^deps/secrets/variables\\.tf$"],
@@ -102,8 +102,8 @@
         "variable\\s+\"chart_version\"[\\s\\S]*?default\\s*=\\s*\"(?<currentValue>[^\"]+)\""
       ],
       "datasourceTemplate": "helm",
-      "registryUrlTemplate": "https://helm.releases.hashicorp.com",
-      "depNameTemplate": "hashicorp/vault"
+      "registryUrlsTemplate": ["https://helm.releases.hashicorp.com"],
+      "packageNameTemplate": "hashicorp/vault"
     }
   ]
 }
