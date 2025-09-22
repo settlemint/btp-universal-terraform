@@ -10,7 +10,7 @@ variable "namespace" {
 
 variable "kp_stack_chart_version" {
   type    = string
-  default = "55.8.2"
+  default = "55.11.0"
 }
 
 variable "loki_stack_chart_version" {
