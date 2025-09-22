@@ -12,7 +12,7 @@ variable "namespace" {
 variable "operator_chart_version" {
   description = "Helm chart version for the Zalando Postgres Operator"
   type        = string
-  default     = "1.12.0"
+  default     = "1.14.0"
 }
 
 variable "release_name" {
