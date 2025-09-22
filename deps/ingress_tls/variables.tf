@@ -12,7 +12,7 @@ variable "namespace" {
 
 variable "nginx_chart_version" {
   type    = string
-  default = "4.10.1"
+  default = "4.13.2"
 }
 
 variable "cert_manager_chart_version" {
