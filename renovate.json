@@ -50,7 +50,7 @@
       ],
       "datasourceTemplate": "helm",
       "registryUrlTemplate": "https://kubernetes.github.io/ingress-nginx",
-      "packageNameTemplate": "ingress-nginx/ingress-nginx"
+      "packageNameTemplate": "ingress-nginx"
     },
     {
       "customType": "regex",
@@ -62,7 +62,7 @@
       ],
       "datasourceTemplate": "helm",
       "registryUrlTemplate": "https://charts.jetstack.io",
-      "packageNameTemplate": "jetstack/cert-manager"
+      "packageNameTemplate": "cert-manager"
     },
     {
       "customType": "regex",
@@ -74,7 +74,7 @@
       ],
       "datasourceTemplate": "helm",
       "registryUrlTemplate": "https://charts.bitnami.com/bitnami",
-      "packageNameTemplate": "bitnami/postgresql"
+      "packageNameTemplate": "postgresql"
     },
     {
       "customType": "regex",
@@ -86,7 +86,7 @@
       ],
       "datasourceTemplate": "helm",
       "registryUrlTemplate": "https://charts.bitnami.com/bitnami",
-      "packageNameTemplate": "bitnami/redis"
+      "packageNameTemplate": "redis"
     },
     {
       "customType": "regex",
@@ -98,7 +98,7 @@
       ],
       "datasourceTemplate": "helm",
       "registryUrlTemplate": "https://charts.bitnami.com/bitnami",
-      "packageNameTemplate": "bitnami/minio"
+      "packageNameTemplate": "minio"
     },
     {
       "customType": "regex",
@@ -110,7 +110,7 @@
       ],
       "datasourceTemplate": "helm",
       "registryUrlTemplate": "https://prometheus-community.github.io/helm-charts",
-      "packageNameTemplate": "prometheus-community/kube-prometheus-stack"
+      "packageNameTemplate": "kube-prometheus-stack"
     },
     {
       "customType": "regex",
@@ -122,7 +122,7 @@
       ],
       "datasourceTemplate": "helm",
       "registryUrlTemplate": "https://grafana.github.io/helm-charts",
-      "packageNameTemplate": "grafana/loki-stack"
+      "packageNameTemplate": "loki-stack"
     },
     {
       "customType": "regex",
@@ -134,7 +134,7 @@
       ],
       "datasourceTemplate": "helm",
       "registryUrlTemplate": "https://charts.bitnami.com/bitnami",
-      "packageNameTemplate": "bitnami/keycloak"
+      "packageNameTemplate": "keycloak"
     },
     {
       "customType": "regex",
@@ -146,7 +146,7 @@
       ],
       "datasourceTemplate": "helm",
       "registryUrlTemplate": "https://helm.releases.hashicorp.com",
-      "packageNameTemplate": "hashicorp/vault"
+      "packageNameTemplate": "vault"
     }
   ]
 }
