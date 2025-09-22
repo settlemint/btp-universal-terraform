@@ -9,11 +9,13 @@ locals {
 }
 
 resource "helm_release" "vault" {
-  name       = local.release
-  namespace  = local.ns
-  repository = "https://helm.releases.hashicorp.com"
-  chart      = "vault"
-  version    = var.chart_version
+  name            = local.release
+  namespace       = local.ns
+  repository      = "https://helm.releases.hashicorp.com"
+  chart           = "vault"
+  version         = var.chart_version
+  atomic          = true
+  cleanup_on_fail = true
 
   values = [
     yamlencode(merge({

@@ -28,6 +28,12 @@ variable "base_domain" {
   default = "127.0.0.1.nip.io"
 }
 
+variable "ingress_enabled" {
+  description = "Enable ingress for Keycloak. Defaults to false for local/dev to avoid admission webhook races."
+  type        = bool
+  default     = false
+}
+
 variable "manage_namespace" {
   description = "Whether this module should create the namespace. Set false if namespaces are managed at root."
   type        = bool

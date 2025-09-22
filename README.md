@@ -44,10 +44,6 @@ bash scripts/install.sh examples/generic-orbstack-dev.tfvars
 
 Replace the tfvars with your environment file (e.g., `examples/aws-dev.tfvars`, `examples/azure-dev.tfvars`, `examples/gcp-dev.tfvars`, or a custom file).
 
-```bash
-bash scripts/install.sh examples/generic-orbstack-dev.tfvars
-```
-
 ### Manual Apply
 
 ```bash
@@ -86,6 +82,12 @@ terraform destroy -var-file examples/generic-orbstack-dev.tfvars
 - Grafana accessible; Prometheus up; Loki receiving logs
 - Keycloak admin reachable; Vault server responding (dev mode)
 
+You can run a deeper end-to-end verification:
+
+```bash
+bash scripts/verify.sh btp-deps
+```
+
 ### Namespaces
 
 - Dependencies deploy to `btp-deps` by default (override per dependency via `var.<dep>.k8s.namespace` or `var.namespaces`).
@@ -96,8 +98,10 @@ terraform destroy -var-file examples/generic-orbstack-dev.tfvars
 - Root module wires dependency modules and normalizes outputs
 - Modules:
   - `./deps/{postgres,redis,object_storage,oauth,secrets,ingress_tls,metrics_logs}` implement the three-mode pattern
-  - `./btp_helm` maps normalized outputs to BTP chart values
+  - `./btp_helm` (stub) will map normalized outputs to BTP chart values
 - Examples in `./examples/*.tfvars` (generic examples included; cloud examples can be added per team)
+
+Note: `cluster.create` is present for future cloud scaffolding but not implemented yet in the root module.
 
 ## Quality Assurance
 
@@ -111,3 +115,27 @@ checkov -d .
 ```
 
 Before PRs: include plan output for the example tfvars and note any input/output changes. See `AGENTS.md` for conventions.
+
+## Backends & State
+
+For local development, the default local state is fine. For shared environments, configure a remote backend (e.g., S3, GCS, AzureRM). Example (commented):
+
+```hcl
+# terraform {
+#   backend "s3" {
+#     bucket = "my-tf-state"
+#     key    = "btp-universal-terraform/terraform.tfstate"
+#     region = "us-east-1"
+#   }
+# }
+```
+
+## Dev Defaults vs Production
+
+These modules default to development-friendly settings:
+- Persistence disabled for databases and observability
+- Ingress uses NodePort and a self-signed ClusterIssuer
+- Vault runs in dev mode with a known token
+- Redis/MinIO without TLS
+
+Do not use these defaults in production; override via `values` and enable persistence, TLS, and proper authentication as needed.

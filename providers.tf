@@ -11,8 +11,3 @@ provider "helm" {
     config_path = local.kubeconfig_path
   }
 }
-
-provider "kubectl" {
-  load_config_file = true
-  config_path      = local.kubeconfig_path
-}

@@ -40,3 +40,15 @@ variable "manage_namespace" {
   type        = bool
   default     = false
 }
+
+variable "values_nginx" {
+  description = "Additional values to merge into the ingress-nginx chart."
+  type        = map(any)
+  default     = {}
+}
+
+variable "values_cert_manager" {
+  description = "Additional values to merge into the cert-manager chart."
+  type        = map(any)
+  default     = {}
+}

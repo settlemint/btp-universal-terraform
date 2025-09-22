@@ -20,9 +20,10 @@ namespaces = {
 postgres = {
   mode = "k8s"
   k8s = {
-    release_name  = "postgres"
-    chart_version = "13.4.2"
-    database      = "btp"
+    release_name           = "postgres"
+    operator_chart_version = "1.12.2"
+    postgresql_version     = "15"
+    database               = "btp"
   }
 }
 

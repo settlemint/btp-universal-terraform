@@ -12,10 +12,13 @@ if [ ! -f "$VAR_FILE" ]; then
 fi
 
 echo "[install] Running preflight checks..."
-"$(dirname "$0")/preflight.sh"
+bash "$(dirname "$0")/preflight.sh"
 
 echo "[install] Initializing Terraform..."
-terraform init -upgrade
+terraform init
+
+echo "[install] Validating Terraform..."
+terraform validate
 
 echo "[install] Applying Terraform (auto-approve)..."
 terraform apply -auto-approve -var-file "$VAR_FILE"
@@ -24,4 +27,3 @@ echo "[install] Apply complete. Selected outputs (sensitive values hidden):"
 terraform output || true
 
 echo "[install] Done."
-

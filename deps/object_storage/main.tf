@@ -3,7 +3,6 @@ resource "kubernetes_namespace" "this" {
   metadata { name = var.namespace }
 }
 
-resource "random_password" "access" { length = 20 }
 resource "random_password" "secret" { length = 30 }
 
 locals {
@@ -12,11 +11,13 @@ locals {
 }
 
 resource "helm_release" "minio" {
-  name       = local.release
-  namespace  = local.ns
-  repository = "https://charts.bitnami.com/bitnami"
-  chart      = "minio"
-  version    = var.chart_version
+  name            = local.release
+  namespace       = local.ns
+  repository      = "https://charts.bitnami.com/bitnami"
+  chart           = "minio"
+  version         = var.chart_version
+  atomic          = true
+  cleanup_on_fail = true
 
   values = [
     yamlencode(merge({

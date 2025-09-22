@@ -12,11 +12,13 @@ locals {
 }
 
 resource "helm_release" "kps" {
-  name       = local.release_kps
-  namespace  = local.ns
-  repository = "https://prometheus-community.github.io/helm-charts"
-  chart      = "kube-prometheus-stack"
-  version    = var.kp_stack_chart_version
+  name            = local.release_kps
+  namespace       = local.ns
+  repository      = "https://prometheus-community.github.io/helm-charts"
+  chart           = "kube-prometheus-stack"
+  version         = var.kp_stack_chart_version
+  atomic          = true
+  cleanup_on_fail = true
 
   values = [
     yamlencode(merge({
@@ -33,11 +35,13 @@ resource "helm_release" "kps" {
 }
 
 resource "helm_release" "loki" {
-  name       = local.release_loki
-  namespace  = local.ns
-  repository = "https://grafana.github.io/helm-charts"
-  chart      = "loki-stack"
-  version    = var.loki_stack_chart_version
+  name            = local.release_loki
+  namespace       = local.ns
+  repository      = "https://grafana.github.io/helm-charts"
+  chart           = "loki-stack"
+  version         = var.loki_stack_chart_version
+  atomic          = true
+  cleanup_on_fail = true
 
   values = [
     yamlencode({

@@ -15,6 +15,7 @@ helm repo add jetstack https://charts.jetstack.io >/dev/null 2>&1 || true
 helm repo add grafana https://grafana.github.io/helm-charts >/dev/null 2>&1 || true
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts >/dev/null 2>&1 || true
 helm repo add hashicorp https://helm.releases.hashicorp.com >/dev/null 2>&1 || true
+helm repo add postgres-operator https://opensource.zalando.com/postgres-operator/charts/postgres-operator >/dev/null 2>&1 || true
 helm repo update >/dev/null
 
 echo "[preflight] Checking default StorageClass..."
@@ -23,4 +24,3 @@ if ! kubectl get sc | grep -q "(default)"; then
 fi
 
 echo "[preflight] OK"
-

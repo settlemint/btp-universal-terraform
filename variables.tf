@@ -29,13 +29,13 @@ variable "cluster" {
 variable "namespaces" {
   description = "Namespaces per dependency (override to split)."
   type = object({
-    ingress_tls    = optional(string, "btp-ingress")
-    postgres       = optional(string, "btp-postgres")
-    redis          = optional(string, "btp-redis")
-    object_storage = optional(string, "btp-minio")
-    metrics_logs   = optional(string, "btp-observability")
-    oauth          = optional(string, "btp-oauth")
-    secrets        = optional(string, "btp-secrets")
+    ingress_tls    = optional(string, "btp-deps")
+    postgres       = optional(string, "btp-deps")
+    redis          = optional(string, "btp-deps")
+    object_storage = optional(string, "btp-deps")
+    metrics_logs   = optional(string, "btp-deps")
+    oauth          = optional(string, "btp-deps")
+    secrets        = optional(string, "btp-deps")
   })
   default = {}
 }
@@ -45,11 +45,13 @@ variable "postgres" {
   type = object({
     mode = optional(string, "k8s")
     k8s = optional(object({
-      namespace     = optional(string)
-      chart_version = optional(string, "13.4.2")
-      release_name  = optional(string, "postgres")
-      values        = optional(map(any), {})
-      database      = optional(string, "btp")
+      namespace                        = optional(string)
+      operator_chart_version           = optional(string)
+      postgresql_version               = optional(string)
+      release_name                     = optional(string)
+      values                           = optional(map(any), {})
+      database                         = optional(string)
+      credentials_secret_name_override = optional(string)
     }), {})
   })
   default = {}
@@ -60,8 +62,8 @@ variable "redis" {
     mode = optional(string, "k8s")
     k8s = optional(object({
       namespace     = optional(string)
-      chart_version = optional(string, "18.1.6")
-      release_name  = optional(string, "redis")
+      chart_version = optional(string)
+      release_name  = optional(string)
       values        = optional(map(any), {})
     }), {})
   })
@@ -73,10 +75,10 @@ variable "object_storage" {
     mode = optional(string, "k8s")
     k8s = optional(object({
       namespace      = optional(string)
-      chart_version  = optional(string, "14.6.7")
-      release_name   = optional(string, "minio")
+      chart_version  = optional(string)
+      release_name   = optional(string)
       values         = optional(map(any), {})
-      default_bucket = optional(string, "btp-artifacts")
+      default_bucket = optional(string)
     }), {})
   })
   default = {}
@@ -87,11 +89,13 @@ variable "ingress_tls" {
     mode = optional(string, "k8s")
     k8s = optional(object({
       namespace                  = optional(string)
-      nginx_chart_version        = optional(string, "4.10.1")
-      cert_manager_chart_version = optional(string, "v1.14.4")
-      release_name_nginx         = optional(string, "ingress")
-      release_name_cert_manager  = optional(string, "cert-manager")
-      issuer_name                = optional(string, "selfsigned-issuer")
+      nginx_chart_version        = optional(string)
+      cert_manager_chart_version = optional(string)
+      release_name_nginx         = optional(string)
+      release_name_cert_manager  = optional(string)
+      issuer_name                = optional(string)
+      values_nginx               = optional(map(any), {})
+      values_cert_manager        = optional(map(any), {})
     }), {})
   })
   default = {}
@@ -102,10 +106,10 @@ variable "metrics_logs" {
     mode = optional(string, "k8s")
     k8s = optional(object({
       namespace                = optional(string)
-      kp_stack_chart_version   = optional(string, "55.8.2")
-      loki_stack_chart_version = optional(string, "2.9.11")
-      release_name_kps         = optional(string, "kps")
-      release_name_loki        = optional(string, "loki")
+      kp_stack_chart_version   = optional(string)
+      loki_stack_chart_version = optional(string)
+      release_name_kps         = optional(string)
+      release_name_loki        = optional(string)
       values                   = optional(map(any), {})
     }), {})
   })
@@ -117,8 +121,8 @@ variable "oauth" {
     mode = optional(string, "k8s")
     k8s = optional(object({
       namespace     = optional(string)
-      chart_version = optional(string, "22.3.2")
-      release_name  = optional(string, "keycloak")
+      chart_version = optional(string)
+      release_name  = optional(string)
       values        = optional(map(any), {})
     }), {})
   })
@@ -130,10 +134,10 @@ variable "secrets" {
     mode = optional(string, "k8s")
     k8s = optional(object({
       namespace     = optional(string)
-      chart_version = optional(string, "0.27.0")
-      release_name  = optional(string, "vault")
+      chart_version = optional(string)
+      release_name  = optional(string)
       values        = optional(map(any), {})
-      dev_mode      = optional(bool, true)
+      dev_mode      = optional(bool)
     }), {})
   })
   default = {}

@@ -30,18 +30,22 @@ module "ingress_tls" {
   release_name_nginx         = try(var.ingress_tls.k8s.release_name_nginx, null)
   release_name_cert_manager  = try(var.ingress_tls.k8s.release_name_cert_manager, null)
   issuer_name                = try(var.ingress_tls.k8s.issuer_name, null)
+  values_nginx               = try(var.ingress_tls.k8s.values_nginx, {})
+  values_cert_manager        = try(var.ingress_tls.k8s.values_cert_manager, {})
 }
 
 module "postgres" {
   source = "./deps/postgres"
 
-  mode             = try(var.postgres.mode, "k8s")
-  namespace        = local.ns_postgres
-  manage_namespace = false
-  chart_version    = try(var.postgres.k8s.chart_version, null)
-  release_name     = try(var.postgres.k8s.release_name, null)
-  values           = try(var.postgres.k8s.values, {})
-  database         = try(var.postgres.k8s.database, null)
+  mode                             = try(var.postgres.mode, "k8s")
+  namespace                        = local.ns_postgres
+  manage_namespace                 = false
+  operator_chart_version           = try(var.postgres.k8s.operator_chart_version, null)
+  release_name                     = try(var.postgres.k8s.release_name, null)
+  values                           = try(var.postgres.k8s.values, {})
+  database                         = try(var.postgres.k8s.database, null)
+  postgresql_version               = try(var.postgres.k8s.postgresql_version, null)
+  credentials_secret_name_override = try(var.postgres.k8s.credentials_secret_name_override, null)
 }
 
 module "redis" {
@@ -90,6 +94,9 @@ module "oauth" {
   release_name     = try(var.oauth.k8s.release_name, null)
   values           = try(var.oauth.k8s.values, {})
   base_domain      = var.base_domain
+  ingress_enabled  = try(var.oauth.k8s.ingress_enabled, false)
+
+  depends_on = [module.ingress_tls]
 }
 
 module "secrets" {

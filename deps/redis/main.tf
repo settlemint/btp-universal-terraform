@@ -14,11 +14,13 @@ locals {
 }
 
 resource "helm_release" "redis" {
-  name       = local.release
-  namespace  = local.ns
-  repository = "https://charts.bitnami.com/bitnami"
-  chart      = "redis"
-  version    = var.chart_version
+  name            = local.release
+  namespace       = local.ns
+  repository      = "https://charts.bitnami.com/bitnami"
+  chart           = "redis"
+  version         = var.chart_version
+  atomic          = true
+  cleanup_on_fail = true
 
   values = [
     yamlencode(merge({

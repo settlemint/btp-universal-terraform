@@ -3,43 +3,70 @@ resource "kubernetes_namespace" "this" {
   metadata { name = var.namespace }
 }
 
-resource "random_password" "postgres" {
-  length  = 24
-  special = true
-}
-
 locals {
   release = var.release_name
   ns      = var.namespace
 }
 
-resource "helm_release" "postgres" {
-  name       = local.release
-  namespace  = local.ns
-  repository = "https://charts.bitnami.com/bitnami"
-  chart      = "postgresql"
-  version    = var.chart_version
+# Install Zalando Postgres Operator via Helm
+resource "helm_release" "postgres_operator" {
+  name            = "postgres-operator"
+  namespace       = local.ns
+  repository      = "https://opensource.zalando.com/postgres-operator/charts/postgres-operator"
+  chart           = "postgres-operator"
+  version         = var.operator_chart_version
+  skip_crds       = false
+  atomic          = true
+  cleanup_on_fail = true
 
   values = [
-    yamlencode(merge({
-      global = {
-        postgresql = {
-          auth = {
-            postgresPassword = random_password.postgres.result
-            database         = var.database
-          }
-        }
-      }
-      primary = {
-        persistence = { enabled = false }
-        service     = { type = "ClusterIP" }
-      }
-    }, var.values))
+    yamlencode(var.values)
   ]
 }
 
+# Create a minimal Postgres cluster managed by the operator
+resource "kubernetes_manifest" "postgres_cluster" {
+  manifest = {
+    apiVersion = "acid.zalan.do/v1"
+    kind       = "postgresql"
+    metadata = {
+      name      = local.release
+      namespace = local.ns
+      labels = {
+        "btp.smint.io/dependency" = "postgres"
+      }
+    }
+    spec = {
+      teamId            = "btp"
+      numberOfInstances = 1
+      volume            = { size = "1Gi" }
+      users = {
+        postgres = ["superuser"]
+      }
+      databases = {
+        "${var.database}" = "postgres"
+      }
+      postgresql = {
+        version = var.postgresql_version
+      }
+    }
+  }
+
+  depends_on = [helm_release.postgres_operator]
+}
+
 locals {
-  host = "${local.release}-postgresql.${local.ns}.svc.cluster.local"
+  # Zalando operator exposes the primary service under the cluster name
+  host = "${local.release}.${local.ns}.svc.cluster.local"
   port = 5432
   user = "postgres"
+}
+
+data "kubernetes_secret" "postgres" {
+  metadata {
+    name      = coalesce(var.credentials_secret_name_override, "${local.release}.postgres.credentials.postgresql.acid.zalan.do")
+    namespace = local.ns
+  }
+
+  depends_on = [kubernetes_manifest.postgres_cluster]
 }

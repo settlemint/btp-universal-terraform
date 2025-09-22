@@ -70,11 +70,11 @@
         "/^deps/postgres/variables\\.tf$/"
       ],
       "matchStrings": [
-        "variable\\s+\"chart_version\"[\\s\\S]*?default\\s*=\\s*\"(?<currentValue>[^\"]+)\""
+        "variable\\s+\"operator_chart_version\"[\\s\\S]*?default\\s*=\\s*\"(?<currentValue>[^\"]+)\""
       ],
       "datasourceTemplate": "helm",
-      "registryUrlTemplate": "https://charts.bitnami.com/bitnami",
-      "packageNameTemplate": "postgresql"
+      "registryUrlTemplate": "https://opensource.zalando.com/postgres-operator/charts/postgres-operator",
+      "packageNameTemplate": "postgres-operator"
     },
     {
       "customType": "regex",

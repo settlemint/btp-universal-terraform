@@ -11,11 +11,14 @@ locals {
 }
 
 resource "helm_release" "keycloak" {
-  name       = local.release
-  namespace  = local.ns
-  repository = "https://charts.bitnami.com/bitnami"
-  chart      = "keycloak"
-  version    = var.chart_version
+  name            = local.release
+  namespace       = local.ns
+  repository      = "https://charts.bitnami.com/bitnami"
+  chart           = "keycloak"
+  version         = var.chart_version
+  atomic          = true
+  cleanup_on_fail = true
+  timeout         = 600
 
   values = [
     yamlencode(merge({
@@ -32,12 +35,18 @@ resource "helm_release" "keycloak" {
       httpRelativePath = "/",
       service          = { type = "ClusterIP" },
       persistence      = { enabled = false }
-    }, var.values))
+      }, var.ingress_enabled ? {
+      ingress = {
+        enabled          = true,
+        hostname         = "keycloak.${var.base_domain}",
+        ingressClassName = "nginx"
+      }
+    } : {}, var.values))
   ]
 }
 
 locals {
   svc_host   = "${local.release}.${local.ns}.svc.cluster.local"
-  http_url   = "http://${local.svc_host}:8080"
+  http_url   = var.ingress_enabled ? "http://keycloak.${var.base_domain}" : "http://${local.svc_host}:8080"
   issuer_url = "${local.http_url}/realms/master"
 }
