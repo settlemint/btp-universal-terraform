@@ -17,7 +17,7 @@ variable "nginx_chart_version" {
 
 variable "cert_manager_chart_version" {
   type    = string
-  default = "v1.14.4"
+  default = "v1.18.2"
 }
 
 variable "release_name_nginx" {
