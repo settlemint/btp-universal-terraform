@@ -1,31 +1,50 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:base"],
-  "labels": ["dependencies"],
+  "extends": [
+    "config:recommended"
+  ],
+  "labels": [
+    "dependencies"
+  ],
   "rangeStrategy": "bump",
   "timezone": "UTC",
-  "enabledManagers": ["terraform", "regex"],
+  "enabledManagers": [
+    "terraform",
+    "custom.regex"
+  ],
   "packageRules": [
     {
-      "matchManagers": ["terraform"],
+      "matchManagers": [
+        "terraform"
+      ],
       "semanticCommitType": "chore",
       "semanticCommitScope": "deps"
     },
     {
-      "matchManagers": ["regex"],
+      "matchManagers": [
+        "custom.regex"
+      ],
       "semanticCommitType": "chore",
       "semanticCommitScope": "helm"
     },
     {
-      "matchManagers": ["terraform", "regex"],
-      "matchUpdateTypes": ["patch"],
+      "matchManagers": [
+        "terraform",
+        "custom.regex"
+      ],
+      "matchUpdateTypes": [
+        "patch"
+      ],
       "automerge": true,
       "automergeType": "branch"
     }
   ],
-  "regexManagers": [
+  "customManagers": [
     {
-      "fileMatch": ["^deps/ingress_tls/variables\\.tf$"],
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^deps/ingress_tls/variables\\.tf$/"
+      ],
       "matchStrings": [
         "variable\\s+\"nginx_chart_version\"[\\s\\S]*?default\\s*=\\s*\"(?<currentValue>[^\"]+)\""
       ],
@@ -34,7 +53,10 @@
       "packageNameTemplate": "ingress-nginx/ingress-nginx"
     },
     {
-      "fileMatch": ["^deps/ingress_tls/variables\\.tf$"],
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^deps/ingress_tls/variables\\.tf$/"
+      ],
       "matchStrings": [
         "variable\\s+\"cert_manager_chart_version\"[\\s\\S]*?default\\s*=\\s*\"(?<currentValue>[^\"]+)\""
       ],
@@ -43,7 +65,10 @@
       "packageNameTemplate": "jetstack/cert-manager"
     },
     {
-      "fileMatch": ["^deps/postgres/variables\\.tf$"],
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^deps/postgres/variables\\.tf$/"
+      ],
       "matchStrings": [
         "variable\\s+\"chart_version\"[\\s\\S]*?default\\s*=\\s*\"(?<currentValue>[^\"]+)\""
       ],
@@ -52,7 +77,10 @@
       "packageNameTemplate": "bitnami/postgresql"
     },
     {
-      "fileMatch": ["^deps/redis/variables\\.tf$"],
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^deps/redis/variables\\.tf$/"
+      ],
       "matchStrings": [
         "variable\\s+\"chart_version\"[\\s\\S]*?default\\s*=\\s*\"(?<currentValue>[^\"]+)\""
       ],
@@ -61,7 +89,10 @@
       "packageNameTemplate": "bitnami/redis"
     },
     {
-      "fileMatch": ["^deps/object_storage/variables\\.tf$"],
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^deps/object_storage/variables\\.tf$/"
+      ],
       "matchStrings": [
         "variable\\s+\"chart_version\"[\\s\\S]*?default\\s*=\\s*\"(?<currentValue>[^\"]+)\""
       ],
@@ -70,7 +101,10 @@
       "packageNameTemplate": "bitnami/minio"
     },
     {
-      "fileMatch": ["^deps/metrics_logs/variables\\.tf$"],
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^deps/metrics_logs/variables\\.tf$/"
+      ],
       "matchStrings": [
         "variable\\s+\"kp_stack_chart_version\"[\\s\\S]*?default\\s*=\\s*\"(?<currentValue>[^\"]+)\""
       ],
@@ -79,7 +113,10 @@
       "packageNameTemplate": "prometheus-community/kube-prometheus-stack"
     },
     {
-      "fileMatch": ["^deps/metrics_logs/variables\\.tf$"],
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^deps/metrics_logs/variables\\.tf$/"
+      ],
       "matchStrings": [
         "variable\\s+\"loki_stack_chart_version\"[\\s\\S]*?default\\s*=\\s*\"(?<currentValue>[^\"]+)\""
       ],
@@ -88,7 +125,10 @@
       "packageNameTemplate": "grafana/loki-stack"
     },
     {
-      "fileMatch": ["^deps/oauth/variables\\.tf$"],
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^deps/oauth/variables\\.tf$/"
+      ],
       "matchStrings": [
         "variable\\s+\"chart_version\"[\\s\\S]*?default\\s*=\\s*\"(?<currentValue>[^\"]+)\""
       ],
@@ -97,7 +137,10 @@
       "packageNameTemplate": "bitnami/keycloak"
     },
     {
-      "fileMatch": ["^deps/secrets/variables\\.tf$"],
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/^deps/secrets/variables\\.tf$/"
+      ],
       "matchStrings": [
         "variable\\s+\"chart_version\"[\\s\\S]*?default\\s*=\\s*\"(?<currentValue>[^\"]+)\""
       ],
