@@ -10,7 +10,7 @@ variable "namespace" {
 
 variable "chart_version" {
   type    = string
-  default = "18.1.6"
+  default = "18.19.4"
 }
 
 variable "release_name" {
