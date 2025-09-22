@@ -129,8 +129,18 @@ provider "registry.terraform.io/hashicorp/random" {
 
 provider "registry.terraform.io/hashicorp/tls" {
   version     = "4.1.0"
-  constraints = ">= 4.0.0"
+  constraints = ">= 4.1.0"
   hashes = [
+    "h1:4gd/jiOS0zJxjTd5Q4o/gOp24RxcuwQ/TxwjTYQNPz4=",
+    "h1:C0J7AsrVHVqnDT9tICDNaKvA9iH6WTLS2EYzCEegpx0=",
+    "h1:Ka8mEwRFXBabR33iN/WTIEW6RP0z13vFsDlwn11Pf2I=",
+    "h1:ReNkTkCM64bktu54eGwQc29rhIejMLQsYA6kYNyBWno=",
+    "h1:UklaKJOCynnEJbpCVN0zJKIJ3SvO7RQJ00/6grBatnw=",
+    "h1:ZHcr1WIomuU6ZV+dzEwAG1+52JP0e0d/+l7bo3N5p88=",
+    "h1:eZa3vbx1pbiwnajuKvGWE7jWK+nHQ8lcLc/mO6Rhf4o=",
+    "h1:iSgnCUoLGMkt31RlflnL09NyjpAH0DX6bb9QBw5IE9Y=",
+    "h1:uDtqTpFJOseNUlPDx4TT/lXf6ie3CarsimL7sYCiVH4=",
+    "h1:y9cHrgcuaZt592In6xQzz1lx7k/B9EeWrAb8K7QqOgU=",
     "h1:zEv9tY1KR5vaLSyp2lkrucNJ+Vq3c+sTFK9GyQGLtFs=",
     "zh:14c35d89307988c835a7f8e26f1b83ce771e5f9b41e407f86a644c0152089ac2",
     "zh:2fb9fe7a8b5afdbd3e903acb6776ef1be3f2e587fb236a8c60f11a9fa165faa8",
