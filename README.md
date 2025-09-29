@@ -58,6 +58,60 @@ terraform plan  -var-file examples/generic-orbstack-dev.tfvars
 terraform apply -var-file examples/generic-orbstack-dev.tfvars
 ```
 
+### Optional: Install the SettleMint Platform via Terraform
+
+Enable the Platform Helm release by adding this block to your tfvars (values are merged with auto-wired dependencies such as Redis/Postgres/Ingress):
+
+```hcl
+btp = {
+  enabled       = true
+  chart_version = "7.0.0"
+  namespace     = "settlemint"
+  release_name  = "settlemint-platform"
+  values = {
+    ingress = {
+      # Set your host; cert-manager issuer comes from deps.ingress_tls
+      host = "<your-domain>"
+    }
+    # Provide any additional production settings/security hardening here
+  }
+}
+```
+
+### Using a .env file for registry login
+
+Place your OCI registry credentials in a `.env` file (or copy `.env.example`). If you use 1Password, use secret references and run with `op run` (scripts do not source `.env` themselves):
+
+```
+SETTLEMINT_REGISTRY=registry.settlemint.com
+SETTLEMINT_REGISTRY_USERNAME=op://btp-universal-terraform/License/username
+SETTLEMINT_REGISTRY_PASSWORD=op://btp-universal-terraform/License/password
+```
+
+With 1Password references, load the env at runtime:
+
+```bash
+# If you have multiple 1Password accounts, pass the account shorthand
+# List accounts with: op account list
+op run --account <your-account> --env-file=.env -- bash scripts/install.sh examples/generic-orbstack-dev.tfvars
+```
+
+### Optional: drive dependency credentials via .env
+
+By default, credentials are generated securely at apply time. To override them from your `.env`, set these variables (leave unset to keep random generation):
+
+```
+# Terraform reads TF_VAR_* automatically
+TF_VAR_redis_password=
+TF_VAR_object_storage_access_key=
+TF_VAR_object_storage_secret_key=
+TF_VAR_grafana_admin_password=
+TF_VAR_oauth_admin_password=
+TF_VAR_secrets_dev_token=
+```
+
+Postgres credentials are managed by the Zalando Postgres Operator and exposed via a Kubernetes Secret. If you need a custom DB user/password provisioned, we can extend the module to create an application user Secret managed by Terraform.
+
 ## Typical development workflow
 
 - Edit module code under `./deps/*` or root variables/outputs
@@ -91,14 +145,14 @@ bash scripts/verify.sh btp-deps
 ### Namespaces
 
 - Dependencies deploy to `btp-deps` by default (override per dependency via `var.<dep>.k8s.namespace` or `var.namespaces`).
-- The BTP chart deploys to `btp` by default (configurable in `btp_helm` module).
+- The BTP chart deploys to `btp` by default (configurable in `btp` module).
 
 ## Architecture Overview
 
 - Root module wires dependency modules and normalizes outputs
 - Modules:
   - `./deps/{postgres,redis,object_storage,oauth,secrets,ingress_tls,metrics_logs}` implement the three-mode pattern
-  - `./btp_helm` (stub) will map normalized outputs to BTP chart values
+  - `./btp` module maps normalized outputs to BTP chart values
 - Examples in `./examples/*.tfvars` (generic examples included; cloud examples can be added per team)
 
 Note: `cluster.create` is present for future cloud scaffolding but not implemented yet in the root module.
