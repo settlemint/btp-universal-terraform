@@ -19,6 +19,9 @@ terraform destroy -auto-approve -var-file "$VAR_FILE"
 echo "[destroy] Cleaning up any remaining namespaces..."
 kubectl delete namespace btp-deps settlemint --ignore-not-found=true
 
+echo "[destroy] Cleaning up cluster-scoped resources..."
+kubectl delete clusterissuer selfsigned-issuer --ignore-not-found=true
+
 echo "[destroy] Removing terraform state and cache files..."
 rm -rf .terraform .terraform.lock.hcl terraform.tfstate terraform.tfstate.backup
 

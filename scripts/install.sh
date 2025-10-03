@@ -61,6 +61,23 @@ if [ -n "${BTP_LICENSE_EXPIRATION_DATE:-}" ]; then
   export TF_VAR_license_expiration_date="${BTP_LICENSE_EXPIRATION_DATE}"
 fi
 
+# Platform security secrets
+if [ -n "${BTP_JWT_SIGNING_KEY:-}" ]; then
+  export TF_VAR_jwt_signing_key="${BTP_JWT_SIGNING_KEY}"
+fi
+if [ -n "${BTP_IPFS_CLUSTER_SECRET:-}" ]; then
+  export TF_VAR_ipfs_cluster_secret="${BTP_IPFS_CLUSTER_SECRET}"
+fi
+if [ -n "${BTP_STATE_ENCRYPTION_KEY:-}" ]; then
+  export TF_VAR_state_encryption_key="${BTP_STATE_ENCRYPTION_KEY}"
+fi
+if [ -n "${BTP_AWS_ACCESS_KEY_ID:-}" ]; then
+  export TF_VAR_aws_access_key_id="${BTP_AWS_ACCESS_KEY_ID}"
+fi
+if [ -n "${BTP_AWS_SECRET_ACCESS_KEY:-}" ]; then
+  export TF_VAR_aws_secret_access_key="${BTP_AWS_SECRET_ACCESS_KEY}"
+fi
+
 # Debug: Verify the variables are set
 if [ -n "${TF_VAR_license_username:-}" ]; then
   echo "[install] License credentials configured for user: ${TF_VAR_license_username:0:3}***"
