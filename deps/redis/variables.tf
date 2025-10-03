@@ -23,6 +23,12 @@ variable "values" {
   default = {}
 }
 
+variable "password" {
+  description = "Override Redis password; if null, a random password is generated"
+  type        = string
+  default     = null
+}
+
 variable "manage_namespace" {
   description = "Whether this module should create the namespace. Set false if namespaces are managed at root."
   type        = bool

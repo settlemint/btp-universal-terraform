@@ -15,7 +15,6 @@ output "grafana_username" {
 }
 
 output "grafana_password" {
-  value     = random_password.grafana.result
+  value     = coalesce(var.grafana_password, try(random_password.grafana[0].result, null))
   sensitive = true
 }
-

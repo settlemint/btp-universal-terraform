@@ -11,7 +11,7 @@ output "username" {
 }
 
 output "password" {
-  value     = try(base64decode(data.kubernetes_secret.postgres.data["password"]), "")
+  value     = data.kubernetes_secret.postgres.data["password"]
   sensitive = true
 }
 
@@ -20,6 +20,6 @@ output "database" {
 }
 
 output "connection_string" {
-  value     = "postgres://${local.user}:${try(base64decode(data.kubernetes_secret.postgres.data["password"]), "")}@${local.host}:${local.port}/${var.database}?sslmode=disable"
+  value     = "postgres://${local.user}:${data.kubernetes_secret.postgres.data["password"]}@${local.host}:${local.port}/${var.database}?sslmode=disable"
   sensitive = true
 }

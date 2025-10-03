@@ -1,4 +1,0 @@
-output "status" {
-  value = "pending"
-}
-

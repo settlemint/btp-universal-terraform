@@ -26,6 +26,14 @@ kubeconfig
 # Logs
 *.log
 
+# Env files (keep example)
+.env
+.env.*
+!.env.example
+
+# License files
+license.json
+
 # OS / Editors
 .DS_Store
 Thumbs.db
@@ -42,4 +50,3 @@ coverage/
 # Python (scripts)
 __pycache__/
 *.pyc
-

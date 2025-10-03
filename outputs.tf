@@ -34,14 +34,14 @@ output "object_storage" {
 }
 
 output "oauth" {
-  value = {
-    issuer        = module.oauth.issuer
-    admin_url     = module.oauth.admin_url
-    client_id     = module.oauth.client_id
-    client_secret = module.oauth.client_secret
-    scopes        = module.oauth.scopes
-    callback_urls = module.oauth.callback_urls
-  }
+  value = length(module.oauth) > 0 ? {
+    issuer        = module.oauth[0].issuer
+    admin_url     = module.oauth[0].admin_url
+    client_id     = module.oauth[0].client_id
+    client_secret = module.oauth[0].client_secret
+    scopes        = module.oauth[0].scopes
+    callback_urls = module.oauth[0].callback_urls
+  } : {}
   sensitive = true
 }
 

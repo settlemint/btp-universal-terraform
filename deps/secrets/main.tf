@@ -30,5 +30,5 @@ resource "helm_release" "vault" {
 
 locals {
   vault_addr = "http://${local.release}.${local.ns}.svc.cluster.local:8200"
-  token      = var.dev_mode ? "root" : null
+  token      = var.dev_mode ? coalesce(var.dev_token, "root") : null
 }

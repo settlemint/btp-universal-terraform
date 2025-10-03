@@ -65,13 +65,14 @@ metrics_logs = {
   }
 }
 
-oauth = {
-  mode = "k8s"
-  k8s = {
-    release_name  = "keycloak"
-    chart_version = "25.2.0"
-  }
-}
+# Skip oauth for now to test BTP platform
+# oauth = {
+#   mode = "k8s" 
+#   k8s = {
+#     release_name  = "keycloak"
+#     chart_version = "24.8.1"
+#   }
+# }
 
 secrets = {
   mode = "k8s"
@@ -80,4 +81,13 @@ secrets = {
     chart_version = "0.27.0"
     dev_mode      = true
   }
+}
+
+btp = {
+  enabled       = true
+  chart         = "oci://harbor.settlemint.com/settlemint/settlemint"
+  namespace     = "settlemint"
+  release_name  = "settlemint-platform"
+  chart_version = "v7.32.3"
+  values_file   = "enhanced-dev-values.yaml"
 }

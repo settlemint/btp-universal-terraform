@@ -30,6 +30,8 @@ resource "helm_release" "cert_manager" {
   version         = var.cert_manager_chart_version
   atomic          = true
   cleanup_on_fail = true
+  wait            = true
+  timeout         = 600
 
   values = [
     yamlencode(merge({
@@ -38,8 +40,13 @@ resource "helm_release" "cert_manager" {
   ]
 }
 
-resource "kubernetes_manifest" "selfsigned_issuer" {
+resource "time_sleep" "cert_manager_crds" {
   depends_on = [helm_release.cert_manager]
+  create_duration = "90s"
+}
+
+resource "kubernetes_manifest" "selfsigned_issuer" {
+  depends_on = [time_sleep.cert_manager_crds]
   manifest = {
     apiVersion = "cert-manager.io/v1"
     kind       = "ClusterIssuer"

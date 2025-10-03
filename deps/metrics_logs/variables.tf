@@ -33,6 +33,12 @@ variable "values" {
   default = {}
 }
 
+variable "grafana_password" {
+  description = "Override Grafana admin password; if null, a random value is generated"
+  type        = string
+  default     = null
+}
+
 variable "manage_namespace" {
   description = "Whether this module should create the namespace. Set false if namespaces are managed at root."
   type        = bool

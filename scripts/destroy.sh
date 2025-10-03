@@ -10,8 +10,17 @@ if [ ! -f "$VAR_FILE" ]; then
   exit 1
 fi
 
+echo "[destroy] Initializing Terraform..."
+terraform init -upgrade
+
 echo "[destroy] Destroying Terraform-managed resources..."
 terraform destroy -auto-approve -var-file "$VAR_FILE"
 
-echo "[destroy] Done."
+echo "[destroy] Cleaning up any remaining namespaces..."
+kubectl delete namespace btp-deps settlemint --ignore-not-found=true
+
+echo "[destroy] Removing terraform state and cache files..."
+rm -rf .terraform .terraform.lock.hcl terraform.tfstate terraform.tfstate.backup
+
+echo "[destroy] Reset complete! Ready for fresh deployment."
 

@@ -28,6 +28,18 @@ variable "default_bucket" {
   default = "btp-artifacts"
 }
 
+variable "access_key" {
+  description = "Override MinIO access key (rootUser); defaults to 'minio' if null"
+  type        = string
+  default     = null
+}
+
+variable "secret_key" {
+  description = "Override MinIO secret key (rootPassword); if null, a random value is generated"
+  type        = string
+  default     = null
+}
+
 variable "manage_namespace" {
   description = "Whether this module should create the namespace. Set false if namespaces are managed at root."
   type        = bool

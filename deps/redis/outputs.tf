@@ -7,7 +7,7 @@ output "port" {
 }
 
 output "password" {
-  value     = random_password.redis.result
+  value     = coalesce(var.password, try(random_password.redis[0].result, null))
   sensitive = true
 }
 
@@ -18,4 +18,3 @@ output "scheme" {
 output "tls_enabled" {
   value = false
 }
-

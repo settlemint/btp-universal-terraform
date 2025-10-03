@@ -6,7 +6,7 @@ locals {
   ns_metrics     = coalesce(try(var.metrics_logs.k8s.namespace, null), var.namespaces.metrics_logs, "btp-deps")
   ns_oauth       = coalesce(try(var.oauth.k8s.namespace, null), var.namespaces.oauth, "btp-deps")
   ns_secrets     = coalesce(try(var.secrets.k8s.namespace, null), var.namespaces.secrets, "btp-deps")
-  dep_namespaces = toset([local.ns_ingress, local.ns_postgres, local.ns_redis, local.ns_minio, local.ns_metrics, local.ns_oauth, local.ns_secrets])
+  dep_namespaces = try(var.oauth.mode, "disabled") == "disabled" ? toset([local.ns_ingress, local.ns_postgres, local.ns_redis, local.ns_minio, local.ns_metrics, local.ns_secrets]) : toset([local.ns_ingress, local.ns_postgres, local.ns_redis, local.ns_minio, local.ns_metrics, local.ns_oauth, local.ns_secrets])
 }
 
 resource "kubernetes_namespace" "deps" {
@@ -85,6 +85,7 @@ module "metrics_logs" {
 }
 
 module "oauth" {
+  count  = try(var.oauth.mode, "disabled") != "disabled" ? 1 : 0
   source = "./deps/oauth"
 
   mode             = try(var.oauth.mode, "k8s")
@@ -109,4 +110,51 @@ module "secrets" {
   release_name     = try(var.secrets.k8s.release_name, null)
   values           = try(var.secrets.k8s.values, {})
   dev_mode         = try(var.secrets.k8s.dev_mode, true)
+}
+
+module "btp" {
+  count  = var.btp.enabled ? 1 : 0
+  source = "./btp"
+
+  chart            = var.btp.chart
+  chart_version    = var.btp.chart_version
+  namespace        = var.btp.namespace
+  release_name     = var.btp.release_name
+  values           = var.btp.values
+  values_file      = var.btp.values_file
+  create_namespace = true
+
+  base_domain = var.base_domain
+
+  # Pass dependency outputs
+  postgres       = module.postgres
+  redis          = module.redis
+  object_storage = module.object_storage
+  oauth          = try(var.oauth.mode, "disabled") == "disabled" ? {} : (length(module.oauth) > 0 ? module.oauth[0] : {})
+  secrets        = module.secrets
+  ingress_tls    = module.ingress_tls
+  metrics_logs   = module.metrics_logs
+
+  # License configuration
+  license_username         = var.license_username
+  license_password         = var.license_password
+  license_signature        = var.license_signature
+  license_email            = var.license_email
+  license_expiration_date  = var.license_expiration_date
+  
+  # Platform security secrets
+  jwt_signing_key       = var.jwt_signing_key
+  ipfs_cluster_secret   = var.ipfs_cluster_secret
+  state_encryption_key  = var.state_encryption_key
+  aws_access_key_id     = var.aws_access_key_id
+  aws_secret_access_key = var.aws_secret_access_key
+
+  depends_on = [
+    module.postgres,
+    module.redis,
+    module.object_storage,
+    module.secrets,
+    module.ingress_tls,
+    module.metrics_logs
+  ]
 }

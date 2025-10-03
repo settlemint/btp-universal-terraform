@@ -3,7 +3,10 @@ resource "kubernetes_namespace" "this" {
   metadata { name = var.namespace }
 }
 
-resource "random_password" "grafana" { length = 16 }
+resource "random_password" "grafana" {
+  count  = var.grafana_password == null ? 1 : 0
+  length = 16
+}
 
 locals {
   ns           = var.namespace
@@ -23,7 +26,7 @@ resource "helm_release" "kps" {
   values = [
     yamlencode(merge({
       grafana = {
-        adminPassword = random_password.grafana.result
+        adminPassword = coalesce(var.grafana_password, try(random_password.grafana[0].result, null))
         persistence   = { enabled = false }
         service       = { type = "ClusterIP" }
       },

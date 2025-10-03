@@ -8,6 +8,13 @@ locals {
   ns      = var.namespace
 }
 
+# Wait for postgres operator to be ready and create secrets
+resource "time_sleep" "wait_for_postgres_secret" {
+  create_duration = "30s"
+  
+  depends_on = [kubernetes_manifest.postgres_cluster]
+}
+
 # Install Zalando Postgres Operator via Helm
 resource "helm_release" "postgres_operator" {
   name            = "postgres-operator"
@@ -48,6 +55,12 @@ resource "kubernetes_manifest" "postgres_cluster" {
       }
       postgresql = {
         version = var.postgresql_version
+        parameters = {
+          ssl = var.enable_ssl ? "on" : "off"
+        }
+      }
+      patroni = {
+        pg_hba = var.pg_hba_rules
       }
     }
   }
@@ -68,5 +81,5 @@ data "kubernetes_secret" "postgres" {
     namespace = local.ns
   }
 
-  depends_on = [kubernetes_manifest.postgres_cluster]
+  depends_on = [time_sleep.wait_for_postgres_secret]
 }

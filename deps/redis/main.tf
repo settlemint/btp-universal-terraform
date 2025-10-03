@@ -4,6 +4,7 @@ resource "kubernetes_namespace" "this" {
 }
 
 resource "random_password" "redis" {
+  count   = var.password == null ? 1 : 0
   length  = 24
   special = false
 }
@@ -27,7 +28,7 @@ resource "helm_release" "redis" {
       architecture = "standalone",
       auth = {
         enabled  = true,
-        password = random_password.redis.result
+        password = coalesce(var.password, try(random_password.redis[0].result, null))
       },
       master = {
         persistence = { enabled = false }
@@ -37,6 +38,6 @@ resource "helm_release" "redis" {
 }
 
 locals {
-  host = "${local.release}-redis-master.${local.ns}.svc.cluster.local"
+  host = "${local.release}-master.${local.ns}.svc.cluster.local"
   port = 6379
 }

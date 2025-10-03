@@ -47,3 +47,18 @@ variable "manage_namespace" {
   type        = bool
   default     = false
 }
+
+variable "enable_ssl" {
+  description = "Enable SSL/TLS for PostgreSQL connections. Set false for dev/test environments."
+  type        = bool
+  default     = false
+}
+
+variable "pg_hba_rules" {
+  description = "Custom pg_hba rules for PostgreSQL authentication. Defaults allow all MD5-authenticated connections."
+  type        = list(string)
+  default     = [
+    "host all all all md5",
+    "local all all trust"
+  ]
+}

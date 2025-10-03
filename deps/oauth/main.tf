@@ -3,7 +3,10 @@ resource "kubernetes_namespace" "this" {
   metadata { name = var.namespace }
 }
 
-resource "random_password" "admin" { length = 20 }
+resource "random_password" "admin" {
+  count  = var.admin_password == null ? 1 : 0
+  length = 20
+}
 
 locals {
   ns      = var.namespace
@@ -18,13 +21,15 @@ resource "helm_release" "keycloak" {
   version         = var.chart_version
   atomic          = true
   cleanup_on_fail = true
+  replace         = true
   timeout         = 600
+
 
   values = [
     yamlencode(merge({
       auth = {
         adminUser     = "admin"
-        adminPassword = random_password.admin.result
+        adminPassword = coalesce(var.admin_password, try(random_password.admin[0].result, null))
       },
       production = false,
       postgresql = { enabled = true },

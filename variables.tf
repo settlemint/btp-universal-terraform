@@ -118,7 +118,7 @@ variable "metrics_logs" {
 
 variable "oauth" {
   type = object({
-    mode = optional(string, "k8s")
+    mode = optional(string, "disabled")
     k8s = optional(object({
       namespace     = optional(string)
       chart_version = optional(string)
@@ -138,7 +138,123 @@ variable "secrets" {
       release_name  = optional(string)
       values        = optional(map(any), {})
       dev_mode      = optional(bool)
+      dev_token     = optional(string)
     }), {})
   })
   default = {}
+}
+
+# Convenience env-mappable var to override Vault dev token without nested objects
+variable "secrets_dev_token" {
+  description = "Vault dev root token to expose via outputs when dev_mode is true (overrides secrets.k8s.dev_token if set)."
+  type        = string
+  default     = null
+}
+
+# SettleMint Platform (Helm) deployment
+variable "btp" {
+  description = "Configure deployment of the SettleMint Platform Helm chart (disabled by default)."
+  type = object({
+    enabled       = optional(bool, false)
+    namespace     = optional(string, "settlemint")
+    release_name  = optional(string, "settlemint-platform")
+    chart         = optional(string, "oci://registry.settlemint.com/settlemint-platform/SettleMint")
+    chart_version = optional(string)
+    values        = optional(map(any), {})
+    values_file   = optional(string)
+  })
+  default = {}
+}
+
+# Convenience env-mappable overrides for dependency credentials
+variable "redis_password" {
+  description = "Override Redis password (dev/prod). If unset, a random password is generated."
+  type        = string
+  default     = null
+}
+
+variable "object_storage_access_key" {
+  description = "Override MinIO access key (rootUser). If unset, defaults to 'minio'."
+  type        = string
+  default     = null
+}
+
+variable "object_storage_secret_key" {
+  description = "Override MinIO secret key (rootPassword). If unset, a random password is generated."
+  type        = string
+  default     = null
+}
+
+variable "grafana_admin_password" {
+  description = "Override Grafana admin password. If unset, a random password is generated."
+  type        = string
+  default     = null
+}
+
+variable "oauth_admin_password" {
+  description = "Override Keycloak admin password. If unset, a random password is generated."
+  type        = string
+  default     = null
+}
+
+# License inputs for the platform chart (injected into btp.values.license)
+variable "license_username" {
+  type    = string
+  default = null
+}
+
+variable "license_password" {
+  type    = string
+  default = null
+}
+
+variable "license_signature" {
+  type    = string
+  default = null
+}
+
+variable "license_email" {
+  type    = string
+  default = null
+}
+
+variable "license_expiration_date" {
+  type    = string
+  default = null
+}
+
+# Platform security secrets
+variable "jwt_signing_key" {
+  description = "JWT signing key for authentication (optional). If not provided, a random key will be generated."
+  type        = string
+  default     = null
+  sensitive   = true
+}
+
+variable "ipfs_cluster_secret" {
+  description = "IPFS cluster secret for distributed storage (optional). If not provided, a random secret will be generated."
+  type        = string
+  default     = null
+  sensitive   = true
+}
+
+variable "state_encryption_key" {
+  description = "Encryption key for deployment engine state (optional). If not provided, a random key will be generated."
+  type        = string
+  default     = null
+  sensitive   = true
+}
+
+variable "aws_access_key_id" {
+  description = "AWS access key ID for cloud storage (optional)"
+  type        = string
+  default     = null
+  sensitive   = true
+}
+
+variable "aws_secret_access_key" {
+  description = "AWS secret access key for cloud storage (optional)"
+  type        = string
+  default     = null
+  sensitive   = true
 }

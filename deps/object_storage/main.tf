@@ -3,7 +3,10 @@ resource "kubernetes_namespace" "this" {
   metadata { name = var.namespace }
 }
 
-resource "random_password" "secret" { length = 30 }
+resource "random_password" "secret" {
+  count  = var.secret_key == null ? 1 : 0
+  length = 30
+}
 
 locals {
   release = var.release_name
@@ -22,8 +25,8 @@ resource "helm_release" "minio" {
   values = [
     yamlencode(merge({
       auth = {
-        rootUser     = "minio"
-        rootPassword = random_password.secret.result
+        rootUser     = coalesce(var.access_key, "minio")
+        rootPassword = coalesce(var.secret_key, try(random_password.secret[0].result, null))
       },
       defaultBuckets = var.default_bucket,
       persistence    = { enabled = false },

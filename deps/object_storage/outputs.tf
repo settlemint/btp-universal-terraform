@@ -7,12 +7,12 @@ output "bucket" {
 }
 
 output "access_key" {
-  value     = "minio"
+  value     = coalesce(var.access_key, "minio")
   sensitive = true
 }
 
 output "secret_key" {
-  value     = random_password.secret.result
+  value     = coalesce(var.secret_key, try(random_password.secret[0].result, null))
   sensitive = true
 }
 
@@ -23,4 +23,3 @@ output "region" {
 output "use_path_style" {
   value = true
 }
-

@@ -28,6 +28,12 @@ variable "dev_mode" {
   default = true
 }
 
+variable "dev_token" {
+  description = "Vault dev root token to expose via outputs when dev_mode is true. Defaults to 'root' if null."
+  type        = string
+  default     = null
+}
+
 variable "manage_namespace" {
   description = "Whether this module should create the namespace. Set false if namespaces are managed at root."
   type        = bool
