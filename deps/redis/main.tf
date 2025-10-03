@@ -1,43 +1,52 @@
-resource "kubernetes_namespace" "this" {
-  count = var.manage_namespace ? 1 : 0
-  metadata { name = var.namespace }
-}
-
-resource "random_password" "redis" {
-  count   = var.password == null ? 1 : 0
-  length  = 24
-  special = false
-}
+# Redis dependency module
+# Supports multiple deployment modes: k8s | aws | azure | gcp | byo
 
 locals {
-  release = var.release_name
-  ns      = var.namespace
-}
+  mode = var.mode
 
-resource "helm_release" "redis" {
-  name            = local.release
-  namespace       = local.ns
-  repository      = "https://charts.bitnami.com/bitnami"
-  chart           = "redis"
-  version         = var.chart_version
-  atomic          = true
-  cleanup_on_fail = true
+  # Normalize outputs from whichever provider is active
+  host = (
+    local.mode == "k8s" ? local.k8s_host :
+    local.mode == "aws" ? local.aws_host :
+    local.mode == "azure" ? local.azure_host :
+    local.mode == "gcp" ? local.gcp_host :
+    local.mode == "byo" ? local.byo_host :
+    null
+  )
 
-  values = [
-    yamlencode(merge({
-      architecture = "standalone",
-      auth = {
-        enabled  = true,
-        password = coalesce(var.password, try(random_password.redis[0].result, null))
-      },
-      master = {
-        persistence = { enabled = false }
-      }
-    }, var.values))
-  ]
-}
+  port = (
+    local.mode == "k8s" ? local.k8s_port :
+    local.mode == "aws" ? local.aws_port :
+    local.mode == "azure" ? local.azure_port :
+    local.mode == "gcp" ? local.gcp_port :
+    local.mode == "byo" ? local.byo_port :
+    null
+  )
 
-locals {
-  host = "${local.release}-master.${local.ns}.svc.cluster.local"
-  port = 6379
+  password = (
+    local.mode == "k8s" ? local.k8s_password :
+    local.mode == "aws" ? local.aws_password :
+    local.mode == "azure" ? local.azure_password :
+    local.mode == "gcp" ? local.gcp_password :
+    local.mode == "byo" ? local.byo_password :
+    null
+  )
+
+  scheme = (
+    local.mode == "k8s" ? local.k8s_scheme :
+    local.mode == "aws" ? local.aws_scheme :
+    local.mode == "azure" ? local.azure_scheme :
+    local.mode == "gcp" ? local.gcp_scheme :
+    local.mode == "byo" ? local.byo_scheme :
+    null
+  )
+
+  tls_enabled = (
+    local.mode == "k8s" ? local.k8s_tls_enabled :
+    local.mode == "aws" ? local.aws_tls_enabled :
+    local.mode == "azure" ? local.azure_tls_enabled :
+    local.mode == "gcp" ? local.gcp_tls_enabled :
+    local.mode == "byo" ? local.byo_tls_enabled :
+    null
+  )
 }

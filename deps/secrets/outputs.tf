@@ -8,10 +8,9 @@ output "token" {
 }
 
 output "kv_mount" {
-  value = "secret"
+  value = local.kv_mount
 }
 
 output "paths" {
-  value = []
+  value = local.paths
 }
-

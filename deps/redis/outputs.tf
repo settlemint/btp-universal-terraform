@@ -7,14 +7,14 @@ output "port" {
 }
 
 output "password" {
-  value     = coalesce(var.password, try(random_password.redis[0].result, null))
+  value     = local.password
   sensitive = true
 }
 
 output "scheme" {
-  value = "redis"
+  value = local.scheme
 }
 
 output "tls_enabled" {
-  value = false
+  value = local.tls_enabled
 }

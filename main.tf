@@ -37,15 +37,14 @@ module "ingress_tls" {
 module "postgres" {
   source = "./deps/postgres"
 
-  mode                             = try(var.postgres.mode, "k8s")
-  namespace                        = local.ns_postgres
-  manage_namespace                 = false
-  operator_chart_version           = try(var.postgres.k8s.operator_chart_version, null)
-  release_name                     = try(var.postgres.k8s.release_name, null)
-  values                           = try(var.postgres.k8s.values, {})
-  database                         = try(var.postgres.k8s.database, null)
-  postgresql_version               = try(var.postgres.k8s.postgresql_version, null)
-  credentials_secret_name_override = try(var.postgres.k8s.credentials_secret_name_override, null)
+  mode             = try(var.postgres.mode, "k8s")
+  namespace        = local.ns_postgres
+  manage_namespace = false
+  k8s              = try(var.postgres.k8s, {})
+  aws              = try(var.postgres.aws, {})
+  azure            = try(var.postgres.azure, {})
+  gcp              = try(var.postgres.gcp, {})
+  byo              = try(var.postgres.byo, null)
 }
 
 module "redis" {
@@ -54,9 +53,11 @@ module "redis" {
   mode             = try(var.redis.mode, "k8s")
   namespace        = local.ns_redis
   manage_namespace = false
-  chart_version    = try(var.redis.k8s.chart_version, null)
-  release_name     = try(var.redis.k8s.release_name, null)
-  values           = try(var.redis.k8s.values, {})
+  k8s              = try(var.redis.k8s, {})
+  aws              = try(var.redis.aws, {})
+  azure            = try(var.redis.azure, {})
+  gcp              = try(var.redis.gcp, {})
+  byo              = try(var.redis.byo, null)
 }
 
 module "object_storage" {
@@ -65,10 +66,11 @@ module "object_storage" {
   mode             = try(var.object_storage.mode, "k8s")
   namespace        = local.ns_minio
   manage_namespace = false
-  chart_version    = try(var.object_storage.k8s.chart_version, null)
-  release_name     = try(var.object_storage.k8s.release_name, null)
-  values           = try(var.object_storage.k8s.values, {})
-  default_bucket   = try(var.object_storage.k8s.default_bucket, null)
+  k8s              = try(var.object_storage.k8s, {})
+  aws              = try(var.object_storage.aws, {})
+  azure            = try(var.object_storage.azure, {})
+  gcp              = try(var.object_storage.gcp, {})
+  byo              = try(var.object_storage.byo, null)
 }
 
 module "metrics_logs" {
@@ -91,11 +93,12 @@ module "oauth" {
   mode             = try(var.oauth.mode, "k8s")
   namespace        = local.ns_oauth
   manage_namespace = false
-  chart_version    = try(var.oauth.k8s.chart_version, null)
-  release_name     = try(var.oauth.k8s.release_name, null)
-  values           = try(var.oauth.k8s.values, {})
   base_domain      = var.base_domain
-  ingress_enabled  = try(var.oauth.k8s.ingress_enabled, false)
+  k8s              = try(var.oauth.k8s, {})
+  aws              = try(var.oauth.aws, {})
+  azure            = try(var.oauth.azure, {})
+  gcp              = try(var.oauth.gcp, {})
+  byo              = try(var.oauth.byo, null)
 
   depends_on = [module.ingress_tls]
 }
@@ -106,10 +109,11 @@ module "secrets" {
   mode             = try(var.secrets.mode, "k8s")
   namespace        = local.ns_secrets
   manage_namespace = false
-  chart_version    = try(var.secrets.k8s.chart_version, null)
-  release_name     = try(var.secrets.k8s.release_name, null)
-  values           = try(var.secrets.k8s.values, {})
-  dev_mode         = try(var.secrets.k8s.dev_mode, true)
+  k8s              = try(var.secrets.k8s, {})
+  aws              = try(var.secrets.aws, {})
+  azure            = try(var.secrets.azure, {})
+  gcp              = try(var.secrets.gcp, {})
+  byo              = try(var.secrets.byo, null)
 }
 
 # BTP Platform module - temporarily disabled

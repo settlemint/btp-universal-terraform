@@ -7,19 +7,19 @@ output "port" {
 }
 
 output "username" {
-  value = local.user
+  value = local.username
 }
 
 output "password" {
-  value     = try(data.kubernetes_secret.postgres.data["password"], "")
+  value     = local.password
   sensitive = true
 }
 
 output "database" {
-  value = var.database
+  value = local.database
 }
 
 output "connection_string" {
-  value     = try(data.kubernetes_secret.postgres.data["password"], null) != null ? "postgres://${local.user}:${data.kubernetes_secret.postgres.data["password"]}@${local.host}:${local.port}/${var.database}?sslmode=disable" : ""
+  value     = local.connection_string
   sensitive = true
 }

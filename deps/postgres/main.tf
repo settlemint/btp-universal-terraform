@@ -1,93 +1,55 @@
-resource "kubernetes_namespace" "this" {
-  count = var.manage_namespace ? 1 : 0
-  metadata { name = var.namespace }
-}
+# PostgreSQL dependency module
+# Supports multiple deployment modes: k8s | aws | azure | gcp | byo
 
 locals {
-  release = var.release_name
-  ns      = var.namespace
-}
+  mode = var.mode
 
-# Wait for postgres operator to be ready and create secrets
-resource "time_sleep" "wait_for_postgres_secret" {
-  create_duration = "30s"
-  
-  depends_on = [kubernetes_manifest.postgres_cluster]
-}
+  # Normalize outputs from whichever provider is active
+  host = (
+    local.mode == "k8s" ? local.k8s_host :
+    local.mode == "aws" ? local.aws_host :
+    local.mode == "azure" ? local.azure_host :
+    local.mode == "gcp" ? local.gcp_host :
+    local.mode == "byo" ? local.byo_host :
+    null
+  )
 
-# Install Zalando Postgres Operator via Helm
-resource "helm_release" "postgres_operator" {
-  name            = "postgres-operator"
-  namespace       = local.ns
-  repository      = "https://opensource.zalando.com/postgres-operator/charts/postgres-operator"
-  chart           = "postgres-operator"
-  version         = var.operator_chart_version
-  skip_crds       = false
-  atomic          = true
-  cleanup_on_fail = true
+  port = (
+    local.mode == "k8s" ? local.k8s_port :
+    local.mode == "aws" ? local.aws_port :
+    local.mode == "azure" ? local.azure_port :
+    local.mode == "gcp" ? local.gcp_port :
+    local.mode == "byo" ? local.byo_port :
+    null
+  )
 
-  values = [
-    yamlencode(merge(
-      {
-        configKubernetes = {
-          # Set SSL mode for operator connections to match cluster SSL setting
-          postgres_pod_environment_secret_sslmode = var.enable_ssl ? "require" : "disable"
-        }
-      },
-      var.values
-    ))
-  ]
-}
+  username = (
+    local.mode == "k8s" ? local.k8s_user :
+    local.mode == "aws" ? local.aws_user :
+    local.mode == "azure" ? local.azure_user :
+    local.mode == "gcp" ? local.gcp_user :
+    local.mode == "byo" ? local.byo_user :
+    null
+  )
 
-# Create a minimal Postgres cluster managed by the operator
-resource "kubernetes_manifest" "postgres_cluster" {
-  manifest = {
-    apiVersion = "acid.zalan.do/v1"
-    kind       = "postgresql"
-    metadata = {
-      name      = local.release
-      namespace = local.ns
-      labels = {
-        "btp.smint.io/dependency" = "postgres"
-      }
-    }
-    spec = {
-      teamId            = "btp"
-      numberOfInstances = 1
-      volume            = { size = "1Gi" }
-      users = {
-        postgres = ["superuser"]
-      }
-      databases = {
-        "${var.database}" = "postgres"
-      }
-      postgresql = {
-        version = var.postgresql_version
-        parameters = {
-          ssl = var.enable_ssl ? "on" : "off"
-        }
-      }
-      patroni = {
-        pg_hba = var.pg_hba_rules
-      }
-    }
-  }
+  password = (
+    local.mode == "k8s" ? local.k8s_password :
+    local.mode == "aws" ? local.aws_password :
+    local.mode == "azure" ? local.azure_password :
+    local.mode == "gcp" ? local.gcp_password :
+    local.mode == "byo" ? local.byo_password :
+    null
+  )
 
-  depends_on = [helm_release.postgres_operator]
-}
+  database = (
+    local.mode == "k8s" ? local.k8s_database :
+    local.mode == "aws" ? local.aws_database :
+    local.mode == "azure" ? local.azure_database :
+    local.mode == "gcp" ? local.gcp_database :
+    local.mode == "byo" ? local.byo_database :
+    null
+  )
 
-locals {
-  # Zalando operator exposes the primary service under the cluster name
-  host = "${local.release}.${local.ns}.svc.cluster.local"
-  port = 5432
-  user = "postgres"
-}
-
-data "kubernetes_secret" "postgres" {
-  metadata {
-    name      = coalesce(var.credentials_secret_name_override, "${local.release}.postgres.credentials.postgresql.acid.zalan.do")
-    namespace = local.ns
-  }
-
-  depends_on = [time_sleep.wait_for_postgres_secret]
+  # Build connection string
+  connection_string = local.password != null ? "postgres://${local.username}:${local.password}@${local.host}:${local.port}/${local.database}?sslmode=disable" : ""
 }

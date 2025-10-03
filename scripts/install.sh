@@ -1,13 +1,19 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-VAR_FILE=${1:-examples/generic-orbstack-dev.tfvars}
+VAR_FILE=${1:-examples/k8s-config.tfvars}
 
 echo "[install] Using var-file: ${VAR_FILE}"
 
 if [ ! -f "$VAR_FILE" ]; then
   echo "[install] Var-file not found: $VAR_FILE" >&2
-  echo "Usage: bash scripts/install.sh [path/to/vars.tfvars]" >&2
+  echo "Usage: bash scripts/install.sh [path/to/config.tfvars]" >&2
+  echo "" >&2
+  echo "Available configs:" >&2
+  echo "  examples/k8s-config.tfvars   - Kubernetes-native (Helm charts)" >&2
+  echo "  examples/aws-config.tfvars   - AWS managed services" >&2
+  echo "  examples/azure-config.tfvars - Azure managed services" >&2
+  echo "  examples/gcp-config.tfvars   - GCP managed services" >&2
   exit 1
 fi
 

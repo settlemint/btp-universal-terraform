@@ -1,25 +1,24 @@
 output "issuer" {
-  value = local.issuer_url
+  value = local.issuer
 }
 
 output "admin_url" {
-  value = local.http_url
+  value = local.admin_url
 }
 
 output "client_id" {
-  value = null
+  value = local.client_id
 }
 
 output "client_secret" {
-  value     = null
+  value     = local.client_secret
   sensitive = true
 }
 
 output "scopes" {
-  value = []
+  value = local.scopes
 }
 
 output "callback_urls" {
-  value = []
+  value = local.callback_urls
 }
-

@@ -1,57 +1,61 @@
-resource "kubernetes_namespace" "this" {
-  count = var.manage_namespace ? 1 : 0
-  metadata { name = var.namespace }
-}
-
-resource "random_password" "admin" {
-  count  = var.admin_password == null ? 1 : 0
-  length = 20
-}
+# OAuth dependency module
+# Supports multiple deployment modes: k8s | aws | azure | gcp | byo
 
 locals {
-  ns      = var.namespace
-  release = var.release_name
-}
+  mode = var.mode
 
-resource "helm_release" "keycloak" {
-  name            = local.release
-  namespace       = local.ns
-  repository      = "https://charts.bitnami.com/bitnami"
-  chart           = "keycloak"
-  version         = var.chart_version
-  atomic          = true
-  cleanup_on_fail = true
-  replace         = true
-  timeout         = 600
+  # Normalize outputs from whichever provider is active
+  issuer = (
+    local.mode == "k8s" ? local.k8s_issuer :
+    local.mode == "aws" ? local.aws_issuer :
+    local.mode == "azure" ? local.azure_issuer :
+    local.mode == "gcp" ? local.gcp_issuer :
+    local.mode == "byo" ? local.byo_issuer :
+    null
+  )
 
+  admin_url = (
+    local.mode == "k8s" ? local.k8s_admin_url :
+    local.mode == "aws" ? local.aws_admin_url :
+    local.mode == "azure" ? local.azure_admin_url :
+    local.mode == "gcp" ? local.gcp_admin_url :
+    local.mode == "byo" ? local.byo_admin_url :
+    null
+  )
 
-  values = [
-    yamlencode(merge({
-      auth = {
-        adminUser     = "admin"
-        adminPassword = coalesce(var.admin_password, try(random_password.admin[0].result, null))
-      },
-      production = false,
-      postgresql = { enabled = true },
-      proxy      = "edge",
-      extraEnvVars = [
-        { name = "KC_PROXY", value = "edge" }
-      ],
-      httpRelativePath = "/",
-      service          = { type = "ClusterIP" },
-      persistence      = { enabled = false }
-      }, var.ingress_enabled ? {
-      ingress = {
-        enabled          = true,
-        hostname         = "keycloak.${var.base_domain}",
-        ingressClassName = "nginx"
-      }
-    } : {}, var.values))
-  ]
-}
+  client_id = (
+    local.mode == "k8s" ? local.k8s_client_id :
+    local.mode == "aws" ? local.aws_client_id :
+    local.mode == "azure" ? local.azure_client_id :
+    local.mode == "gcp" ? local.gcp_client_id :
+    local.mode == "byo" ? local.byo_client_id :
+    null
+  )
 
-locals {
-  svc_host   = "${local.release}.${local.ns}.svc.cluster.local"
-  http_url   = var.ingress_enabled ? "http://keycloak.${var.base_domain}" : "http://${local.svc_host}:8080"
-  issuer_url = "${local.http_url}/realms/master"
+  client_secret = (
+    local.mode == "k8s" ? local.k8s_client_secret :
+    local.mode == "aws" ? local.aws_client_secret :
+    local.mode == "azure" ? local.azure_client_secret :
+    local.mode == "gcp" ? local.gcp_client_secret :
+    local.mode == "byo" ? local.byo_client_secret :
+    null
+  )
+
+  scopes = (
+    local.mode == "k8s" ? local.k8s_scopes :
+    local.mode == "aws" ? local.aws_scopes :
+    local.mode == "azure" ? local.azure_scopes :
+    local.mode == "gcp" ? local.gcp_scopes :
+    local.mode == "byo" ? local.byo_scopes :
+    null
+  )
+
+  callback_urls = (
+    local.mode == "k8s" ? local.k8s_callback_urls :
+    local.mode == "aws" ? local.aws_callback_urls :
+    local.mode == "azure" ? local.azure_callback_urls :
+    local.mode == "gcp" ? local.gcp_callback_urls :
+    local.mode == "byo" ? local.byo_callback_urls :
+    null
+  )
 }

@@ -34,15 +34,28 @@ This repository provides a consistent Terraform flow to provision BTP platform d
 
 ## Quick Start
 
+### Configuration Files
+
+Choose the configuration that matches your deployment target:
+
+- **`examples/k8s-config.tfvars`** - Kubernetes-native (Helm charts for all dependencies)
+- **`examples/aws-config.tfvars`** - AWS managed services (RDS, ElastiCache, S3, Cognito, etc.)
+- **`examples/azure-config.tfvars`** - Azure managed services (PostgreSQL, Redis Cache, Blob, AD B2C, etc.)
+- **`examples/gcp-config.tfvars`** - GCP managed services (Cloud SQL, Memorystore, GCS, Identity Platform, etc.)
+
+You can also mix modes per dependency (e.g., AWS RDS + K8s Redis + BYO S3).
+
 ### One‑liner Install
 
-Run a full install (preflight + init + apply) using your chosen tfvars:
+Run a full install (preflight + init + apply) using your chosen config:
 
 ```bash
-bash scripts/install.sh examples/generic-orbstack-dev.tfvars
-```
+# Kubernetes-native deployment
+bash scripts/install.sh examples/k8s-config.tfvars
 
-Replace the tfvars with your environment file (e.g., `examples/aws-dev.tfvars`, `examples/azure-dev.tfvars`, `examples/gcp-dev.tfvars`, or a custom file).
+# Or use AWS managed services
+bash scripts/install.sh examples/aws-config.tfvars
+```
 
 ### Manual Apply
 
@@ -53,9 +66,9 @@ Replace the tfvars with your environment file (e.g., `examples/aws-dev.tfvars`, 
 # Initialize Terraform
 terraform init
 
-# Review plan and apply using the OrbStack example
-terraform plan  -var-file examples/generic-orbstack-dev.tfvars
-terraform apply -var-file examples/generic-orbstack-dev.tfvars
+# Review plan and apply using your config
+terraform plan  -var-file examples/k8s-config.tfvars
+terraform apply -var-file examples/k8s-config.tfvars
 ```
 
 ### Optional: Install the SettleMint Platform via Terraform
@@ -93,7 +106,7 @@ With 1Password references, load the env at runtime:
 ```bash
 # If you have multiple 1Password accounts, pass the account shorthand
 # List accounts with: op account list
-op run --account <your-account> --env-file=.env -- bash scripts/install.sh examples/generic-orbstack-dev.tfvars
+op run --account <your-account> --env-file=.env -- bash scripts/install.sh examples/k8s-config.tfvars
 ```
 
 ### Optional: drive dependency credentials via .env

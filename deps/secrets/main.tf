@@ -1,34 +1,43 @@
-resource "kubernetes_namespace" "this" {
-  count = var.manage_namespace ? 1 : 0
-  metadata { name = var.namespace }
-}
+# Secrets dependency module
+# Supports multiple deployment modes: k8s | aws | azure | gcp | byo
 
 locals {
-  ns      = var.namespace
-  release = var.release_name
-}
+  mode = var.mode
 
-resource "helm_release" "vault" {
-  name            = local.release
-  namespace       = local.ns
-  repository      = "https://helm.releases.hashicorp.com"
-  chart           = "vault"
-  version         = var.chart_version
-  atomic          = true
-  cleanup_on_fail = true
+  # Normalize outputs from whichever provider is active
+  vault_addr = (
+    local.mode == "k8s" ? local.k8s_vault_addr :
+    local.mode == "aws" ? local.aws_vault_addr :
+    local.mode == "azure" ? local.azure_vault_addr :
+    local.mode == "gcp" ? local.gcp_vault_addr :
+    local.mode == "byo" ? local.byo_vault_addr :
+    null
+  )
 
-  values = [
-    yamlencode(merge({
-      server = {
-        dev         = { enabled = var.dev_mode }
-        dataStorage = { enabled = false }
-        service     = { type = "ClusterIP" }
-      }
-    }, var.values))
-  ]
-}
+  token = (
+    local.mode == "k8s" ? local.k8s_token :
+    local.mode == "aws" ? local.aws_token :
+    local.mode == "azure" ? local.azure_token :
+    local.mode == "gcp" ? local.gcp_token :
+    local.mode == "byo" ? local.byo_token :
+    null
+  )
 
-locals {
-  vault_addr = "http://${local.release}.${local.ns}.svc.cluster.local:8200"
-  token      = var.dev_mode ? coalesce(var.dev_token, "root") : null
+  kv_mount = (
+    local.mode == "k8s" ? local.k8s_kv_mount :
+    local.mode == "aws" ? local.aws_kv_mount :
+    local.mode == "azure" ? local.azure_kv_mount :
+    local.mode == "gcp" ? local.gcp_kv_mount :
+    local.mode == "byo" ? local.byo_kv_mount :
+    null
+  )
+
+  paths = (
+    local.mode == "k8s" ? local.k8s_paths :
+    local.mode == "aws" ? local.aws_paths :
+    local.mode == "azure" ? local.azure_paths :
+    local.mode == "gcp" ? local.gcp_paths :
+    local.mode == "byo" ? local.byo_paths :
+    null
+  )
 }

@@ -3,23 +3,23 @@ output "endpoint" {
 }
 
 output "bucket" {
-  value = var.default_bucket
+  value = local.bucket
 }
 
 output "access_key" {
-  value     = coalesce(var.access_key, "minio")
+  value     = local.access_key
   sensitive = true
 }
 
 output "secret_key" {
-  value     = coalesce(var.secret_key, try(random_password.secret[0].result, null))
+  value     = local.secret_key
   sensitive = true
 }
 
 output "region" {
-  value = "us-east-1"
+  value = local.region
 }
 
 output "use_path_style" {
-  value = true
+  value = local.use_path_style
 }
