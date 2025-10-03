@@ -1,29 +1,8 @@
-imagePullCredentials:
-  registries:
-    harbor:
-      enabled: true
-      registry: "harbor.settlemint.com"
-      username: "" # Set via environment variable
-      password: "" # Set via environment variable
-      email: "" # Set via environment variable
-    ghcr:
-      enabled: true
-      registry: "ghcr.io"
-      username: "" # Set via environment variable
-      password: "" # Set via environment variable
-      email: "" # Set via environment variable
-    docker:
-      enabled: true
-      registry: "docker.io"
-      username: "" # Set via environment variable
-      password: "" # Set via environment variable
-      email: "" # Set via environment variable
+# Image pull credentials and license will be set via environment variables
+# Do not include empty values here as they override auto-configuration
 
+# License limits configuration
 license:
-  accountName: "" # Set via environment variable
-  accountToken: "" # Set via environment variable
-  email: "" # Set via environment variable
-  expirationDate: "" # Set via environment variable
   blockchainNetworks:
     limit: -1
   blockchainNodes:
@@ -44,11 +23,10 @@ license:
     limit: -1
   customDeployments:
     limit: -1
-  signature: "" # Set via environment variable
 
 ingress:
   enabled: true
-  host: console.k8s.orb.local
+  host: console.localdev.com
 
 
 
@@ -56,14 +34,19 @@ mongodb:
   enabled: false
 
 auth:
-  jwtSigningKey: "" # Set via environment variable or auto-generated
+  # jwtSigningKey will be auto-generated or set via environment variable
+  providers:
+    passwordless:
+      enabled: false
+    local:
+      enabled: true
 
 vault:
   enabled: false
 
 internal:
   authJWT:
-    signingKey: "" # Set via environment variable or auto-generated
+    # signingKey will be auto-generated or set via environment variable
   email:
     enabled: false
     from: "noreply@example.com"
@@ -74,56 +57,15 @@ internal:
       password: ""
 
 ipfsCluster:
-  clusterSecret: "" # Set via environment variable or auto-generated
+  # clusterSecret will be auto-generated or set via environment variable
 
 features:
   deploymentEngine:
     platform:
       domain:
         tls: true
-        hostname: "console.k8s.orb.local"
-    state:
-      secretsProvider: "passphrase"
-      credentials:
-        encryptionKey: "" # Set via environment variable or auto-generated
-        aws:
-          accessKeyId: "" # Set via environment variable if needed
-          secretAccessKey: "" # Set via environment variable if needed
-          region: "us-east-1"
-    targets:
-      - id: "local"
-        name: "Local Development"
-        icon: "kubernetes"
-        clusters:
-          - id: "orbstack"
-            name: "Orbstack"
-            icon: "global"
-            location:
-              lat: 50.8505
-              lon: 4.3488
-            namespace:
-              single:
-                enabled: true
-                name: "deployments"
-            connection:
-              sameCluster:
-                enabled: true
-            domains:
-              service:
-                tls: true
-                hostname: "console.k8s.orb.local"
-            storage:
-              storageClass: "local-path"
-            ingress:
-              ingressClass: "settlemint-nginx"
-            capabilities:
-              mixedLoadBalancers: true
-              p2pLoadBalancers: false
-              nodePorts:
-                enabled: true
-                range:
-                  min: 30000
-                  max: 32767
+        hostname: "console.localdev.com"
+    # state.secretsProvider, state.credentials, and targets will be auto-generated via terraform
 
 
 support:
@@ -142,7 +84,7 @@ ingress-nginx:
     service:
       type: LoadBalancer
       annotations:
-        external-dns.alpha.kubernetes.io/hostname: "console.k8s.orb.local, *.console.k8s.orb.local"
+        external-dns.alpha.kubernetes.io/hostname: "console.localdev.com, *.console.localdev.com"
     opentelemetry:
       enabled: true
     replicaCount: 1

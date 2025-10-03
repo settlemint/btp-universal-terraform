@@ -27,7 +27,15 @@ resource "helm_release" "postgres_operator" {
   cleanup_on_fail = true
 
   values = [
-    yamlencode(var.values)
+    yamlencode(merge(
+      {
+        configKubernetes = {
+          # Set SSL mode for operator connections to match cluster SSL setting
+          postgres_pod_environment_secret_sslmode = var.enable_ssl ? "require" : "disable"
+        }
+      },
+      var.values
+    ))
   ]
 }
 

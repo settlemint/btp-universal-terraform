@@ -112,49 +112,56 @@ module "secrets" {
   dev_mode         = try(var.secrets.k8s.dev_mode, true)
 }
 
-module "btp" {
-  count  = var.btp.enabled ? 1 : 0
-  source = "./btp"
+# BTP Platform module - temporarily disabled
+# REASON: Terraform shallow merge() is causing values from enhanced-dev-values.yaml to override
+# critical nested fields (state.credentials, targets array) from dev_defaults in btp/main.tf.
+# This results in undefined AWS credentials and missing deployment targets, causing ZodError crashes.
+# Need to either implement deep merge function or restructure how values are passed to Helm.
+# For now, only deploy dependencies (postgres, redis, ingress, etc.) to unblock other work.
 
-  chart            = var.btp.chart
-  chart_version    = var.btp.chart_version
-  namespace        = var.btp.namespace
-  release_name     = var.btp.release_name
-  values           = var.btp.values
-  values_file      = var.btp.values_file
-  create_namespace = true
-
-  base_domain = var.base_domain
-
-  # Pass dependency outputs
-  postgres       = module.postgres
-  redis          = module.redis
-  object_storage = module.object_storage
-  oauth          = try(var.oauth.mode, "disabled") == "disabled" ? {} : (length(module.oauth) > 0 ? module.oauth[0] : {})
-  secrets        = module.secrets
-  ingress_tls    = module.ingress_tls
-  metrics_logs   = module.metrics_logs
-
-  # License configuration
-  license_username         = var.license_username
-  license_password         = var.license_password
-  license_signature        = var.license_signature
-  license_email            = var.license_email
-  license_expiration_date  = var.license_expiration_date
-  
-  # Platform security secrets
-  jwt_signing_key       = var.jwt_signing_key
-  ipfs_cluster_secret   = var.ipfs_cluster_secret
-  state_encryption_key  = var.state_encryption_key
-  aws_access_key_id     = var.aws_access_key_id
-  aws_secret_access_key = var.aws_secret_access_key
-
-  depends_on = [
-    module.postgres,
-    module.redis,
-    module.object_storage,
-    module.secrets,
-    module.ingress_tls,
-    module.metrics_logs
-  ]
-}
+# module "btp" {
+#   count  = var.btp.enabled ? 1 : 0
+#   source = "./btp"
+#
+#   chart            = var.btp.chart
+#   chart_version    = var.btp.chart_version
+#   namespace        = var.btp.namespace
+#   release_name     = var.btp.release_name
+#   values           = var.btp.values
+#   values_file      = var.btp.values_file
+#   create_namespace = true
+#
+#   base_domain = var.base_domain
+#
+#   # Pass dependency outputs
+#   postgres       = module.postgres
+#   redis          = module.redis
+#   object_storage = module.object_storage
+#   oauth          = try(var.oauth.mode, "disabled") == "disabled" ? {} : (length(module.oauth) > 0 ? module.oauth[0] : {})
+#   secrets        = module.secrets
+#   ingress_tls    = module.ingress_tls
+#   metrics_logs   = module.metrics_logs
+#
+#   # License configuration
+#   license_username         = var.license_username
+#   license_password         = var.license_password
+#   license_signature        = var.license_signature
+#   license_email            = var.license_email
+#   license_expiration_date  = var.license_expiration_date
+#
+#   # Platform security secrets
+#   jwt_signing_key       = var.jwt_signing_key
+#   ipfs_cluster_secret   = var.ipfs_cluster_secret
+#   state_encryption_key  = var.state_encryption_key
+#   aws_access_key_id     = var.aws_access_key_id
+#   aws_secret_access_key = var.aws_secret_access_key
+#
+#   depends_on = [
+#     module.postgres,
+#     module.redis,
+#     module.object_storage,
+#     module.secrets,
+#     module.ingress_tls,
+#     module.metrics_logs
+#   ]
+# }
