@@ -37,11 +37,23 @@ variable "k8s" {
 # AWS-specific variables
 variable "aws" {
   type = object({
-    bucket_name        = optional(string, "btp-artifacts")
-    region             = optional(string, "us-east-1")
-    access_key         = optional(string)
-    secret_key         = optional(string)
-    versioning_enabled = optional(bool, false)
+    bucket_name         = optional(string, "btp-artifacts")
+    region              = optional(string, "us-east-1")
+    access_key          = optional(string)
+    secret_key          = optional(string)
+    versioning_enabled  = optional(bool, false)
+    kms_key_id          = optional(string)
+    block_public_access = optional(bool, true)
+    create_iam_user     = optional(bool, true)
+    lifecycle_rules = optional(list(object({
+      id              = string
+      enabled         = bool
+      expiration_days = optional(number)
+      transitions = optional(list(object({
+        days          = number
+        storage_class = string
+      })))
+    })))
   })
   default     = {}
   description = "AWS S3 configuration"

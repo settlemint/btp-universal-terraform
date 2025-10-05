@@ -9,6 +9,14 @@ locals {
   dep_namespaces = try(var.oauth.mode, "disabled") == "disabled" ? toset([local.ns_ingress, local.ns_postgres, local.ns_redis, local.ns_minio, local.ns_metrics, local.ns_secrets]) : toset([local.ns_ingress, local.ns_postgres, local.ns_redis, local.ns_minio, local.ns_metrics, local.ns_oauth, local.ns_secrets])
 }
 
+# VPC Module - Creates dedicated VPC for AWS deployments
+module "vpc" {
+  source = "./deps/vpc"
+
+  mode = var.platform
+  aws  = try(var.vpc.aws, {})
+}
+
 resource "kubernetes_namespace" "deps" {
   for_each = local.dep_namespaces
   metadata {
@@ -41,10 +49,18 @@ module "postgres" {
   namespace        = local.ns_postgres
   manage_namespace = false
   k8s              = try(var.postgres.k8s, {})
-  aws              = try(var.postgres.aws, {})
-  azure            = try(var.postgres.azure, {})
-  gcp              = try(var.postgres.gcp, {})
-  byo              = try(var.postgres.byo, null)
+  aws = merge(
+    try(var.postgres.aws, {}),
+    {
+      subnet_ids         = module.vpc.private_subnet_ids
+      security_group_ids = module.vpc.rds_security_group_id != null ? [module.vpc.rds_security_group_id] : []
+    }
+  )
+  azure = try(var.postgres.azure, {})
+  gcp   = try(var.postgres.gcp, {})
+  byo   = try(var.postgres.byo, null)
+
+  depends_on = [module.vpc]
 }
 
 module "redis" {
@@ -54,10 +70,18 @@ module "redis" {
   namespace        = local.ns_redis
   manage_namespace = false
   k8s              = try(var.redis.k8s, {})
-  aws              = try(var.redis.aws, {})
-  azure            = try(var.redis.azure, {})
-  gcp              = try(var.redis.gcp, {})
-  byo              = try(var.redis.byo, null)
+  aws = merge(
+    try(var.redis.aws, {}),
+    {
+      subnet_ids         = module.vpc.private_subnet_ids
+      security_group_ids = module.vpc.elasticache_security_group_id != null ? [module.vpc.elasticache_security_group_id] : []
+    }
+  )
+  azure = try(var.redis.azure, {})
+  gcp   = try(var.redis.gcp, {})
+  byo   = try(var.redis.byo, null)
+
+  depends_on = [module.vpc]
 }
 
 module "object_storage" {

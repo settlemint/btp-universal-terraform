@@ -1,30 +1,68 @@
 # AWS mode: Deploy PostgreSQL via RDS
-# TODO: Implement AWS RDS PostgreSQL instance
 
-# Placeholder for AWS RDS implementation
-# resource "aws_db_instance" "postgres" {
-#   count                = var.mode == "aws" ? 1 : 0
-#   identifier           = var.aws.identifier
-#   engine               = "postgres"
-#   engine_version       = var.aws.engine_version
-#   instance_class       = var.aws.instance_class
-#   allocated_storage    = var.aws.allocated_storage
-#   db_name              = var.aws.database
-#   username             = var.aws.username
-#   password             = var.aws.password
-#   vpc_security_group_ids = var.aws.security_group_ids
-#   db_subnet_group_name = var.aws.subnet_group_name
-#   skip_final_snapshot  = var.aws.skip_final_snapshot
-#
-#   tags = {
-#     Name = "btp-postgres"
-#   }
-# }
+# Generate a random password if not provided
+resource "random_password" "postgres_password" {
+  count   = var.mode == "aws" && var.aws.password == null ? 1 : 0
+  length  = 32
+  special = true
+}
+
+# Create DB subnet group if subnets are provided but no group name
+resource "aws_db_subnet_group" "postgres" {
+  count      = var.mode == "aws" && var.aws.subnet_group_name == null && length(var.aws.subnet_ids) > 0 ? 1 : 0
+  name       = "${var.aws.identifier}-subnet-group"
+  subnet_ids = var.aws.subnet_ids
+
+  tags = {
+    Name        = "${var.aws.identifier}-subnet-group"
+    ManagedBy   = "terraform"
+    Application = "btp-postgres"
+  }
+}
+
+# RDS PostgreSQL instance
+resource "aws_db_instance" "postgres" {
+  count                  = var.mode == "aws" ? 1 : 0
+  identifier             = var.aws.identifier
+  engine                 = "postgres"
+  engine_version         = var.aws.engine_version
+  instance_class         = var.aws.instance_class
+  allocated_storage      = var.aws.allocated_storage
+  db_name                = var.aws.database
+  username               = var.aws.username
+  password               = var.aws.password != null ? var.aws.password : random_password.postgres_password[0].result
+  vpc_security_group_ids = var.aws.security_group_ids
+  db_subnet_group_name   = var.aws.subnet_group_name != null ? var.aws.subnet_group_name : (length(var.aws.subnet_ids) > 0 ? aws_db_subnet_group.postgres[0].name : null)
+  skip_final_snapshot    = var.aws.skip_final_snapshot
+  publicly_accessible    = var.aws.publicly_accessible
+
+  # Enable automated backups
+  backup_retention_period = var.aws.backup_retention_period
+  backup_window           = var.aws.backup_window
+
+  # Enable encryption at rest
+  storage_encrypted = var.aws.storage_encrypted
+  kms_key_id        = var.aws.kms_key_id
+
+  # Performance Insights
+  enabled_cloudwatch_logs_exports = var.aws.enabled_cloudwatch_logs_exports
+  performance_insights_enabled    = var.aws.performance_insights_enabled
+
+  # Maintenance and upgrades
+  auto_minor_version_upgrade = var.aws.auto_minor_version_upgrade
+  maintenance_window         = var.aws.maintenance_window
+
+  tags = {
+    Name        = var.aws.identifier
+    ManagedBy   = "terraform"
+    Application = "btp-postgres"
+  }
+}
 
 locals {
-  aws_host     = var.mode == "aws" ? "rds-endpoint.region.rds.amazonaws.com" : null
-  aws_port     = var.mode == "aws" ? 5432 : null
-  aws_user     = var.mode == "aws" ? var.aws.username : null
-  aws_password = var.mode == "aws" ? var.aws.password : null
-  aws_database = var.mode == "aws" ? var.aws.database : null
+  aws_host     = var.mode == "aws" ? aws_db_instance.postgres[0].address : null
+  aws_port     = var.mode == "aws" ? aws_db_instance.postgres[0].port : null
+  aws_user     = var.mode == "aws" ? aws_db_instance.postgres[0].username : null
+  aws_password = var.mode == "aws" ? (var.aws.password != null ? var.aws.password : random_password.postgres_password[0].result) : null
+  aws_database = var.mode == "aws" ? aws_db_instance.postgres[0].db_name : null
 }

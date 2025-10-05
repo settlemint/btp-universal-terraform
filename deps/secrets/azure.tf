@@ -13,7 +13,7 @@
 
 locals {
   azure_vault_addr = var.mode == "azure" ? "https://${var.azure.key_vault_name}.vault.azure.net" : null
-  azure_token      = var.mode == "azure" ? null : null  # Managed Identity / Service Principal
+  azure_token      = var.mode == "azure" ? null : null # Managed Identity / Service Principal
   azure_kv_mount   = var.mode == "azure" ? null : null
   azure_paths      = var.mode == "azure" ? [] : null
 }

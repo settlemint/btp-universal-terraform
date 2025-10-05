@@ -100,7 +100,7 @@ oauth = {
     # tenant_id           = "xxxxx-xxxxx-xxxxx"
     # client_id           = "xxxxx"
     # client_secret       = "xxxxx"
-    callback_urls       = ["https://btp.example.com/auth/callback"]
+    callback_urls = ["https://btp.example.com/auth/callback"]
   }
 }
 
@@ -112,7 +112,7 @@ secrets = {
     resource_group_name = "btp-resources"
     location            = "eastus"
     # tenant_id           = "xxxxx-xxxxx-xxxxx"
-    sku_name            = "standard"
+    sku_name = "standard"
   }
 }
 

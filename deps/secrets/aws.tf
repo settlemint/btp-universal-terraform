@@ -6,8 +6,8 @@
 # This module could provide centralized secret paths/policies if needed
 
 locals {
-  aws_vault_addr = var.mode == "aws" ? null : null  # Not applicable
-  aws_token      = var.mode == "aws" ? null : null  # IAM-based auth
+  aws_vault_addr = var.mode == "aws" ? null : null # Not applicable
+  aws_token      = var.mode == "aws" ? null : null # IAM-based auth
   aws_kv_mount   = var.mode == "aws" ? null : null
   aws_paths      = var.mode == "aws" ? [] : null
 }

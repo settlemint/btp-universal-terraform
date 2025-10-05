@@ -41,7 +41,14 @@ output "oauth" {
     client_secret = module.oauth[0].client_secret
     scopes        = module.oauth[0].scopes
     callback_urls = module.oauth[0].callback_urls
-  } : {}
+  } : {
+    issuer        = null
+    admin_url     = null
+    client_id     = null
+    client_secret = null
+    scopes        = []
+    callback_urls = []
+  }
   sensitive = true
 }
 

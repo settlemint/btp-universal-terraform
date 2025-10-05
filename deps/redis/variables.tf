@@ -35,14 +35,23 @@ variable "k8s" {
 # AWS-specific variables
 variable "aws" {
   type = object({
-    cluster_id                   = optional(string, "btp-redis")
-    engine_version               = optional(string, "7.0")
-    node_type                    = optional(string, "cache.t3.micro")
-    parameter_group_name         = optional(string, "default.redis7")
-    security_group_ids           = optional(list(string), [])
-    subnet_group_name            = optional(string)
-    auth_token                   = optional(string)
-    transit_encryption_enabled   = optional(bool, false)
+    cluster_id                 = optional(string, "btp-redis")
+    engine_version             = optional(string, "7.0")
+    node_type                  = optional(string, "cache.t3.micro")
+    num_cache_nodes            = optional(number, 1)
+    parameter_group_name       = optional(string, "default.redis7")
+    security_group_ids         = optional(list(string), [])
+    subnet_ids                 = optional(list(string), [])
+    subnet_group_name          = optional(string)
+    auth_token                 = optional(string)
+    transit_encryption_enabled = optional(bool, false)
+    at_rest_encryption_enabled = optional(bool, true)
+    maintenance_window         = optional(string, "sun:05:00-sun:06:00")
+    snapshot_window            = optional(string, "03:00-04:00")
+    snapshot_retention_limit   = optional(number, 5)
+    auto_minor_version_upgrade = optional(bool, true)
+    apply_immediately          = optional(bool, false)
+    notification_topic_arn     = optional(string)
   })
   default     = {}
   description = "AWS ElastiCache configuration"
@@ -67,13 +76,13 @@ variable "azure" {
 # GCP-specific variables
 variable "gcp" {
   type = object({
-    instance_name            = optional(string, "btp-redis")
-    tier                     = optional(string, "BASIC")
-    memory_size_gb           = optional(number, 1)
-    region                   = optional(string, "us-central1")
-    redis_version            = optional(string, "REDIS_7_0")
-    auth_string              = optional(string)
-    transit_encryption_mode  = optional(string, "DISABLED")
+    instance_name           = optional(string, "btp-redis")
+    tier                    = optional(string, "BASIC")
+    memory_size_gb          = optional(number, 1)
+    region                  = optional(string, "us-central1")
+    redis_version           = optional(string, "REDIS_7_0")
+    auth_string             = optional(string)
+    transit_encryption_mode = optional(string, "DISABLED")
   })
   default     = {}
   description = "GCP Memorystore configuration"

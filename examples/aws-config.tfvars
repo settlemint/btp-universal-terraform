@@ -13,6 +13,20 @@ cluster = {
 
 base_domain = "btp.example.com" # Your actual domain
 
+# VPC Configuration - Creates a dedicated VPC for BTP infrastructure
+vpc = {
+  aws = {
+    create_vpc         = true
+    vpc_name           = "btp-vpc"
+    vpc_cidr           = "10.0.0.0/16"
+    region             = "eu-central-1"
+    availability_zones = ["eu-central-1a", "eu-central-1b", "eu-central-1c"]
+    enable_nat_gateway = true
+    single_nat_gateway = true # Set to false for HA across AZs (costs more)
+    enable_s3_endpoint = true # Reduces data transfer costs for S3
+  }
+}
+
 namespaces = {
   ingress_tls    = "btp-deps"
   postgres       = "btp-deps"
@@ -27,17 +41,15 @@ namespaces = {
 postgres = {
   mode = "aws"
   aws = {
-    identifier          = "btp-postgres"
-    instance_class      = "db.t3.small"
-    allocated_storage   = 50
-    engine_version      = "15.4"
-    database            = "btp"
-    username            = "postgres"
-    # password            = "override-via-env" # Use TF_VAR_postgres_password env var
-    # vpc_id              = "vpc-xxxxx"
-    # subnet_ids          = ["subnet-xxxxx", "subnet-yyyyy"]
-    # security_group_ids  = ["sg-xxxxx"]
+    identifier        = "btp-postgres"
+    instance_class    = "db.t3.small"
+    allocated_storage = 50
+    engine_version    = "15.14"
+    database          = "btp"
+    username          = "postgres"
+    # password will be auto-generated unless TF_VAR_postgres_password is set
     skip_final_snapshot = true
+    # VPC/subnet/security group IDs are auto-injected from VPC module
   }
 }
 
@@ -45,11 +57,10 @@ postgres = {
 redis = {
   mode = "aws"
   aws = {
-    cluster_id       = "btp-redis"
-    node_type        = "cache.t3.micro"
-    engine_version   = "7.0"
-    # subnet_group_name = "btp-cache-subnet"
-    # security_group_ids = ["sg-xxxxx"]
+    cluster_id     = "btp-redis"
+    node_type      = "cache.t3.micro"
+    engine_version = "7.0"
+    # VPC/subnet/security group IDs are auto-injected from VPC module
   }
 }
 
@@ -58,7 +69,7 @@ object_storage = {
   mode = "aws"
   aws = {
     bucket_name        = "btp-artifacts"
-    region             = "us-east-1"
+    region             = "eu-central-1"
     versioning_enabled = true
     # access_key         = "AKIAXXXXX"      # Use TF_VAR_object_storage_access_key
     # secret_key         = "secret"         # Use TF_VAR_object_storage_secret_key
@@ -92,13 +103,13 @@ metrics_logs = {
 oauth = {
   mode = "aws"
   aws = {
-    region         = "us-east-1"
+    region         = "eu-central-1"
     user_pool_name = "btp-users"
     client_name    = "btp-client"
-    # user_pool_id   = "us-east-1_xxxxx" # If using existing pool
+    # user_pool_id   = "eu-central-1_xxxxx" # If using existing pool
     # client_id      = "xxxxx"
     # client_secret  = "xxxxx"
-    callback_urls  = ["https://btp.example.com/auth/callback"]
+    callback_urls = ["https://btp.example.com/auth/callback"]
   }
 }
 
@@ -106,7 +117,7 @@ oauth = {
 secrets = {
   mode = "aws"
   aws = {
-    region = "us-east-1"
+    region = "eu-central-1"
   }
 }
 

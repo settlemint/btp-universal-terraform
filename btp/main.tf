@@ -107,7 +107,7 @@ locals {
 
   # Required configuration for development environments
   dev_defaults = {
-    
+
     features = {
       deploymentEngine = {
         state = {
@@ -137,7 +137,7 @@ locals {
             namespace = {
               single = {
                 enabled = true
-                name = "deployments"
+                name    = "deployments"
               }
             }
             location = {
@@ -157,7 +157,7 @@ locals {
             }
             capabilities = {
               mixedLoadBalancers = true
-              p2pLoadBalancers = false
+              p2pLoadBalancers   = false
               nodePorts = {
                 enabled = true
                 range = {
@@ -172,13 +172,13 @@ locals {
         }]
       }
     }
-    
-# postgresql config now provided via values file
-    
+
+    # postgresql config now provided via values file
+
     vault = {
       enabled = false
     }
-    
+
     auth = {
       jwtSigningKey = coalesce(
         var.jwt_signing_key,
@@ -186,7 +186,7 @@ locals {
         random_password.jwt_signing_key[0].result
       )
     }
-    
+
     ipfsCluster = {
       clusterSecret = coalesce(
         var.ipfs_cluster_secret,
@@ -194,15 +194,15 @@ locals {
         random_password.ipfs_cluster_secret[0].result
       )
     }
-    
+
     internal = {
       email = {
         enabled = false
-        from = "noreply@example.com"
+        from    = "noreply@example.com"
         server = {
-          host = "smtp.example.com"
-          port = "587"
-          user = ""
+          host     = "smtp.example.com"
+          port     = "587"
+          user     = ""
           password = ""
         }
       }
@@ -243,7 +243,7 @@ resource "helm_release" "btp" {
       yamldecode(file(var.values_file)),
       var.values
     ))
-  ] : [
+    ] : [
     yamlencode(merge(
       local.dev_defaults,
       local.image_pull_creds,
