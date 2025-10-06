@@ -3,15 +3,40 @@
 
 platform = "gcp"
 
-cluster = {
-  create          = false # Set to true to create GKE cluster, false to use existing
-  kubeconfig_path = null  # Path to kubeconfig or null to use current context
-  # name            = "btp-cluster"
-  # version         = "1.28"
-  # region          = "us-central1"
-}
-
 base_domain = "btp.example.com" # Your actual domain
+
+# Kubernetes Cluster Configuration - Creates GCP GKE cluster
+k8s_cluster = {
+  mode = "gcp"
+  gcp = {
+    cluster_name       = "btp-gke"
+    project_id         = "my-gcp-project"
+    region             = "us-central1"
+    kubernetes_version = "1.31"
+    network            = "default"
+    subnetwork         = "default"
+
+    # Node pools
+    node_pools = {
+      default = {
+        node_count     = null # Use auto-scaling
+        min_node_count = 1
+        max_node_count = 4
+        auto_scaling   = true
+        machine_type   = "e2-medium"
+        disk_size_gb   = 50
+      }
+    }
+
+    # Features
+    enable_workload_identity          = true
+    enable_http_load_balancing        = true
+    enable_horizontal_pod_autoscaling = true
+    enable_network_policy             = true
+    enable_cloud_logging              = true
+    enable_cloud_monitoring           = true
+  }
+}
 
 namespaces = {
   ingress_tls    = "btp-deps"

@@ -3,14 +3,6 @@
 
 platform = "aws"
 
-cluster = {
-  create          = false # Set to true to create EKS cluster, false to use existing
-  kubeconfig_path = null  # Path to kubeconfig or null to use current context
-  # name            = "btp-cluster"
-  # version         = "1.28"
-  # region          = "us-east-1"
-}
-
 base_domain = "btp.example.com" # Your actual domain
 
 # VPC Configuration - Creates a dedicated VPC for BTP infrastructure
@@ -24,6 +16,43 @@ vpc = {
     enable_nat_gateway = true
     single_nat_gateway = true # Set to false for HA across AZs (costs more)
     enable_s3_endpoint = true # Reduces data transfer costs for S3
+  }
+}
+
+# Kubernetes Cluster Configuration - Creates AWS EKS cluster
+k8s_cluster = {
+  mode = "aws"
+  aws = {
+    cluster_name    = "btp-eks"
+    cluster_version = "1.33"
+    region          = "eu-central-1"
+    # VPC and subnet IDs are auto-injected from VPC module
+
+    # Node groups - 3 node cluster for testing
+    node_groups = {
+      default = {
+        desired_size   = 3
+        min_size       = 3
+        max_size       = 3
+        instance_types = ["t3.medium"]
+        capacity_type  = "ON_DEMAND"
+        disk_size      = 50
+      }
+    }
+
+    # Cluster features
+    enable_irsa                         = true  # IAM Roles for Service Accounts
+    enable_ebs_csi_driver               = false # Disabled - causes timeout, enable later if needed
+    enable_aws_load_balancer_controller = false # Disabled for now
+    enable_cluster_autoscaler           = false
+
+    # Access
+    endpoint_private_access = true
+    endpoint_public_access  = true
+    public_access_cidrs     = ["0.0.0.0/0"] # Restrict this in production
+
+    # Security
+    enable_secrets_encryption = true
   }
 }
 

@@ -40,21 +40,46 @@ resource "helm_release" "cert_manager" {
   ]
 }
 
-resource "time_sleep" "cert_manager_crds" {
+# Wait for cert-manager CRDs to be installed
+resource "time_sleep" "wait_for_cert_manager" {
   depends_on      = [helm_release.cert_manager]
-  create_duration = "90s"
+  create_duration = "60s"
 }
 
-resource "kubernetes_manifest" "selfsigned_issuer" {
-  depends_on = [time_sleep.cert_manager_crds]
-  manifest = {
-    apiVersion = "cert-manager.io/v1"
-    kind       = "ClusterIssuer"
-    metadata = {
-      name = var.issuer_name
-    }
-    spec = {
-      selfSigned = {}
-    }
+# Create ClusterIssuer using kubectl via null_resource
+# NOTE: We use null_resource instead of kubernetes_manifest because:
+# 1. kubernetes_manifest requires K8s API connection during plan phase
+# 2. The cluster doesn't exist yet during initial plan
+# 3. This would cause "cannot create REST client: no client config" errors
+# The null_resource approach runs during apply phase when cluster is ready
+resource "null_resource" "selfsigned_issuer" {
+  depends_on = [time_sleep.wait_for_cert_manager]
+
+  triggers = {
+    issuer_name     = var.issuer_name
+    kubeconfig_path = var.kubeconfig_path
+  }
+
+  provisioner "local-exec" {
+    command = <<-EOT
+      export KUBECONFIG="${self.triggers.kubeconfig_path}"
+      kubectl apply -f - <<EOF
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: ${self.triggers.issuer_name}
+spec:
+  selfSigned: {}
+EOF
+    EOT
+  }
+
+  provisioner "local-exec" {
+    when       = destroy
+    on_failure = continue
+    command    = <<-EOT
+      export KUBECONFIG="${self.triggers.kubeconfig_path}"
+      kubectl delete clusterissuer ${self.triggers.issuer_name} --ignore-not-found=true 2>/dev/null || true
+    EOT
   }
 }

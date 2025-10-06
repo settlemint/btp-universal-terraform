@@ -52,3 +52,8 @@ variable "values_cert_manager" {
   type        = map(any)
   default     = {}
 }
+
+variable "kubeconfig_path" {
+  description = "Path to the kubeconfig file for kubectl commands"
+  type        = string
+}

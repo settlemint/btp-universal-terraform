@@ -6,6 +6,14 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 5.0"
     }
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "~> 4.0"
+    }
+    google = {
+      source  = "hashicorp/google"
+      version = "~> 6.0"
+    }
     helm = {
       source  = "hashicorp/helm"
       version = "~> 2.13"
@@ -14,6 +22,14 @@ terraform {
       source  = "hashicorp/kubernetes"
       version = "~> 2.38"
     }
+    local = {
+      source  = "hashicorp/local"
+      version = "~> 2.5"
+    }
+    null = {
+      source  = "hashicorp/null"
+      version = "~> 3.2"
+    }
     random = {
       source  = "hashicorp/random"
       version = "~> 3.7"
@@ -21,6 +37,10 @@ terraform {
     time = {
       source  = "hashicorp/time"
       version = "~> 0.11"
+    }
+    tls = {
+      source  = "hashicorp/tls"
+      version = "~> 4.0"
     }
   }
 }

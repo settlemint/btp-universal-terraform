@@ -64,6 +64,19 @@ variable "vpc" {
   default = {}
 }
 
+# Kubernetes Cluster configuration
+variable "k8s_cluster" {
+  description = "Managed Kubernetes cluster configuration (EKS, AKS, GKE) or BYO cluster"
+  type = object({
+    mode  = optional(string, "disabled") # aws | azure | gcp | byo | disabled
+    aws   = optional(any, {})            # AWS EKS configuration (see deps/k8s_cluster/variables.tf)
+    azure = optional(any, {})            # Azure AKS configuration
+    gcp   = optional(any, {})            # GCP GKE configuration
+    byo   = optional(any, null)          # Bring Your Own cluster (kubeconfig)
+  })
+  default = {}
+}
+
 # Dependency configs (k8s mode for v1)
 variable "postgres" {
   type = object({

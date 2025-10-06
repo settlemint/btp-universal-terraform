@@ -1,10 +1,12 @@
 # AWS mode: Deploy PostgreSQL via RDS
 
 # Generate a random password if not provided
+# RDS password constraints: only printable ASCII except '/', '@', '"', ' '
 resource "random_password" "postgres_password" {
-  count   = var.mode == "aws" && var.aws.password == null ? 1 : 0
-  length  = 32
-  special = true
+  count            = var.mode == "aws" && var.aws.password == null ? 1 : 0
+  length           = 32
+  special          = true
+  override_special = "!#$%&*()-_=+[]{}~^:?"
 }
 
 # Create DB subnet group if subnets are provided but no group name

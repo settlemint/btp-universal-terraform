@@ -41,7 +41,7 @@ output "oauth" {
     client_secret = module.oauth[0].client_secret
     scopes        = module.oauth[0].scopes
     callback_urls = module.oauth[0].callback_urls
-  } : {
+    } : {
     issuer        = null
     admin_url     = null
     client_id     = null
@@ -80,3 +80,21 @@ output "metrics_logs" {
   sensitive = true
 }
 
+output "k8s_cluster" {
+  description = "Kubernetes cluster details including endpoint, version, and cloud provider-specific information"
+  value = {
+    cluster_name     = module.k8s_cluster.cluster_name
+    cluster_endpoint = module.k8s_cluster.cluster_endpoint
+    cluster_version  = module.k8s_cluster.cluster_version
+    mode             = module.k8s_cluster.mode
+    kubeconfig       = module.k8s_cluster.kubeconfig
+    # AWS-specific
+    aws_oidc_provider_arn = module.k8s_cluster.aws_oidc_provider_arn
+    aws_oidc_provider_url = module.k8s_cluster.aws_oidc_provider_url
+    # Azure-specific
+    azure_cluster_id = module.k8s_cluster.azure_cluster_id
+    # GCP-specific
+    gcp_cluster_id = module.k8s_cluster.gcp_cluster_id
+  }
+  sensitive = true
+}

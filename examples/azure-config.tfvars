@@ -3,15 +3,38 @@
 
 platform = "azure"
 
-cluster = {
-  create          = false # Set to true to create AKS cluster, false to use existing
-  kubeconfig_path = null  # Path to kubeconfig or null to use current context
-  # name            = "btp-cluster"
-  # version         = "1.28"
-  # region          = "eastus"
-}
-
 base_domain = "btp.example.com" # Your actual domain
+
+# Kubernetes Cluster Configuration - Creates Azure AKS cluster
+k8s_cluster = {
+  mode = "azure"
+  azure = {
+    cluster_name        = "btp-aks"
+    resource_group_name = "btp-resources"
+    location            = "eastus"
+    kubernetes_version  = "1.31"
+    dns_prefix          = "btp-aks"
+
+    # Network configuration
+    network_plugin = "azure"
+    network_policy = "azure"
+
+    # Default node pool
+    default_node_pool = {
+      name                = "default"
+      node_count          = null # Use auto-scaling
+      min_count           = 1
+      max_count           = 4
+      enable_auto_scaling = true
+      vm_size             = "Standard_D2s_v3"
+      availability_zones  = ["1", "2", "3"]
+    }
+
+    # RBAC
+    enable_rbac       = true
+    enable_azure_rbac = true
+  }
+}
 
 namespaces = {
   ingress_tls    = "btp-deps"

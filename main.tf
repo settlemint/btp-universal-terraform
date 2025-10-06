@@ -17,14 +17,81 @@ module "vpc" {
   aws  = try(var.vpc.aws, {})
 }
 
+# Kubernetes Cluster Module - Creates managed K8s cluster (EKS, AKS, GKE) or uses existing cluster
+# Deployed after VPC but before all other dependencies
+module "k8s_cluster" {
+  source = "./deps/k8s_cluster"
+
+  mode = try(var.k8s_cluster.mode, "disabled")
+  aws = merge(
+    try(var.k8s_cluster.aws, {}),
+    {
+      vpc_id     = module.vpc.vpc_id
+      subnet_ids = module.vpc.private_subnet_ids
+    }
+  )
+  azure = try(var.k8s_cluster.azure, {})
+  gcp   = try(var.k8s_cluster.gcp, {})
+  byo   = try(var.k8s_cluster.byo, null)
+
+  depends_on = [module.vpc]
+}
+
+# Pre-destroy hook: Clean up Kubernetes LoadBalancers before destroying cluster
+# This prevents orphaned ENIs from blocking subnet/VPC deletion
+resource "null_resource" "cleanup_k8s_loadbalancers" {
+  # Only create this resource when using managed K8s cluster (not BYO)
+  count = contains(["aws", "azure", "gcp"], try(var.k8s_cluster.mode, "disabled")) ? 1 : 0
+
+  triggers = {
+    cluster_id = module.k8s_cluster.cluster_name
+    region     = try(var.k8s_cluster.aws.region, try(var.k8s_cluster.azure.location, try(var.k8s_cluster.gcp.region, "")))
+    mode       = try(var.k8s_cluster.mode, "disabled")
+  }
+
+  # This provisioner runs BEFORE this resource is destroyed
+  # Which happens BEFORE the cluster is destroyed (due to depends_on)
+  provisioner "local-exec" {
+    when       = destroy
+    on_failure = continue
+    command    = <<-EOT
+      echo "🧹 Cleaning up Kubernetes LoadBalancers to prevent orphaned ENIs..."
+
+      # Set KUBECONFIG to use the generated kubeconfig file
+      export KUBECONFIG="${path.root}/.terraform/kubeconfig-${self.triggers.mode}"
+
+      # Delete all LoadBalancer services across all namespaces
+      # Note: --all and --field-selector cannot be used together
+      kubectl delete svc -A --field-selector spec.type=LoadBalancer --timeout=120s 2>/dev/null || true
+
+      # Wait for cloud provider to clean up ENIs/load balancers
+      echo "⏳ Waiting 30s for cloud provider to clean up network interfaces..."
+      sleep 30
+
+      echo "✅ Kubernetes LoadBalancer cleanup complete"
+    EOT
+  }
+
+  depends_on = [
+    module.k8s_cluster,
+    module.ingress_tls,
+    module.metrics_logs
+  ]
+}
+
 resource "kubernetes_namespace" "deps" {
   for_each = local.dep_namespaces
+
   metadata {
     name = each.value
     labels = {
       "btp.smint.io/platform" = var.platform
     }
   }
+
+  depends_on = [
+    module.k8s_cluster
+  ]
 }
 
 module "ingress_tls" {
@@ -40,6 +107,9 @@ module "ingress_tls" {
   issuer_name                = try(var.ingress_tls.k8s.issuer_name, null)
   values_nginx               = try(var.ingress_tls.k8s.values_nginx, {})
   values_cert_manager        = try(var.ingress_tls.k8s.values_cert_manager, {})
+  kubeconfig_path            = local.kubeconfig_path
+
+  depends_on = [kubernetes_namespace.deps]
 }
 
 module "postgres" {
@@ -108,6 +178,8 @@ module "metrics_logs" {
   release_name_kps         = try(var.metrics_logs.k8s.release_name_kps, null)
   release_name_loki        = try(var.metrics_logs.k8s.release_name_loki, null)
   values                   = try(var.metrics_logs.k8s.values, {})
+
+  depends_on = [kubernetes_namespace.deps]
 }
 
 module "oauth" {

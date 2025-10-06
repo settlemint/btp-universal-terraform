@@ -35,6 +35,11 @@ resource "helm_release" "kps" {
       }
     }, var.values))
   ]
+
+  # Ensure we destroy helm releases before cluster/namespace
+  lifecycle {
+    create_before_destroy = false
+  }
 }
 
 resource "helm_release" "loki" {
@@ -53,6 +58,11 @@ resource "helm_release" "loki" {
       loki     = { persistence = { enabled = false } }
     })
   ]
+
+  # Ensure we destroy helm releases before cluster/namespace
+  lifecycle {
+    create_before_destroy = false
+  }
 }
 
 locals {
