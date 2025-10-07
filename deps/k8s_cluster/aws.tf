@@ -195,12 +195,7 @@ resource "aws_iam_role_policy_attachment" "eks_container_registry_policy" {
   role       = aws_iam_role.eks_node_group[0].name
 }
 
-# EBS CSI Driver Policy (if enabled)
-resource "aws_iam_role_policy_attachment" "eks_ebs_csi_policy" {
-  count      = var.mode == "aws" && var.aws.enable_ebs_csi_driver ? 1 : 0
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
-  role       = aws_iam_role.eks_node_group[0].name
-}
+# EBS CSI Driver Policy is now attached via IRSA role, not node role
 
 # EKS Node Groups
 resource "aws_eks_node_group" "main" {
@@ -276,13 +271,52 @@ resource "aws_eks_addon" "coredns" {
   depends_on = [aws_eks_node_group.main]
 }
 
+# IAM role for EBS CSI Driver with IRSA
+resource "aws_iam_role" "ebs_csi_driver" {
+  count = var.mode == "aws" && var.aws.enable_ebs_csi_driver && var.aws.enable_irsa ? 1 : 0
+  name  = "${var.aws.cluster_name}-ebs-csi-driver"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Principal = {
+        Federated = aws_iam_openid_connect_provider.eks[0].arn
+      }
+      Action = "sts:AssumeRoleWithWebIdentity"
+      Condition = {
+        StringEquals = {
+          "${replace(aws_eks_cluster.main[0].identity[0].oidc[0].issuer, "https://", "")}:sub" = "system:serviceaccount:kube-system:ebs-csi-controller-sa"
+          "${replace(aws_eks_cluster.main[0].identity[0].oidc[0].issuer, "https://", "")}:aud" = "sts.amazonaws.com"
+        }
+      }
+    }]
+  })
+
+  tags = {
+    Name        = "${var.aws.cluster_name}-ebs-csi-driver"
+    ManagedBy   = "terraform"
+    Application = "eks-ebs-csi"
+  }
+}
+
+resource "aws_iam_role_policy_attachment" "ebs_csi_driver_policy" {
+  count      = var.mode == "aws" && var.aws.enable_ebs_csi_driver && var.aws.enable_irsa ? 1 : 0
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
+  role       = aws_iam_role.ebs_csi_driver[0].name
+}
+
 resource "aws_eks_addon" "ebs_csi_driver" {
   count                       = var.mode == "aws" && var.aws.enable_ebs_csi_driver ? 1 : 0
   cluster_name                = aws_eks_cluster.main[0].name
   addon_name                  = "aws-ebs-csi-driver"
   resolve_conflicts_on_update = "OVERWRITE"
+  service_account_role_arn    = var.aws.enable_irsa ? aws_iam_role.ebs_csi_driver[0].arn : null
 
-  depends_on = [aws_eks_node_group.main]
+  depends_on = [
+    aws_eks_node_group.main,
+    aws_iam_role_policy_attachment.ebs_csi_driver_policy
+  ]
 }
 
 # Local values for outputs

@@ -212,56 +212,66 @@ module "secrets" {
   byo              = try(var.secrets.byo, null)
 }
 
-# BTP Platform module - temporarily disabled
-# REASON: Terraform shallow merge() is causing values from enhanced-dev-values.yaml to override
-# critical nested fields (state.credentials, targets array) from dev_defaults in btp/main.tf.
-# This results in undefined AWS credentials and missing deployment targets, causing ZodError crashes.
-# Need to either implement deep merge function or restructure how values are passed to Helm.
-# For now, only deploy dependencies (postgres, redis, ingress, etc.) to unblock other work.
+# BTP Platform module - deploys the SettleMint Helm chart
+# Dynamically injects dependency connection details (postgres, redis, s3, vault, oauth)
+# Works across all cloud providers (aws/azure/gcp/k8s/byo) without code changes
+module "btp" {
+  count  = var.btp.enabled ? 1 : 0
+  source = "./btp"
 
-# module "btp" {
-#   count  = var.btp.enabled ? 1 : 0
-#   source = "./btp"
-#
-#   chart            = var.btp.chart
-#   chart_version    = var.btp.chart_version
-#   namespace        = var.btp.namespace
-#   release_name     = var.btp.release_name
-#   values           = var.btp.values
-#   values_file      = var.btp.values_file
-#   create_namespace = true
-#
-#   base_domain = var.base_domain
-#
-#   # Pass dependency outputs
-#   postgres       = module.postgres
-#   redis          = module.redis
-#   object_storage = module.object_storage
-#   oauth          = try(var.oauth.mode, "disabled") == "disabled" ? {} : (length(module.oauth) > 0 ? module.oauth[0] : {})
-#   secrets        = module.secrets
-#   ingress_tls    = module.ingress_tls
-#   metrics_logs   = module.metrics_logs
-#
-#   # License configuration
-#   license_username         = var.license_username
-#   license_password         = var.license_password
-#   license_signature        = var.license_signature
-#   license_email            = var.license_email
-#   license_expiration_date  = var.license_expiration_date
-#
-#   # Platform security secrets
-#   jwt_signing_key       = var.jwt_signing_key
-#   ipfs_cluster_secret   = var.ipfs_cluster_secret
-#   state_encryption_key  = var.state_encryption_key
-#   aws_access_key_id     = var.aws_access_key_id
-#   aws_secret_access_key = var.aws_secret_access_key
-#
-#   depends_on = [
-#     module.postgres,
-#     module.redis,
-#     module.object_storage,
-#     module.secrets,
-#     module.ingress_tls,
-#     module.metrics_logs
-#   ]
-# }
+  chart            = var.btp.chart
+  chart_version    = var.btp.chart_version
+  namespace        = var.btp.namespace
+  release_name     = var.btp.release_name
+  values           = var.btp.values
+  values_file      = var.btp.values_file
+  create_namespace = true
+
+  base_domain = var.base_domain
+
+  # Pass normalized dependency outputs (works for all modes: aws/azure/gcp/k8s/byo)
+  postgres       = module.postgres
+  redis          = module.redis
+  object_storage = module.object_storage
+  oauth = try(var.oauth.mode, "disabled") == "disabled" ? {
+    issuer        = null
+    admin_url     = null
+    client_id     = null
+    client_secret = null
+    scopes        = []
+    callback_urls = []
+  } : (length(module.oauth) > 0 ? module.oauth[0] : {
+    issuer        = null
+    admin_url     = null
+    client_id     = null
+    client_secret = null
+    scopes        = []
+    callback_urls = []
+  })
+  secrets      = module.secrets
+  ingress_tls  = module.ingress_tls
+  metrics_logs = module.metrics_logs
+
+  # License configuration
+  license_username        = var.license_username
+  license_password        = var.license_password
+  license_signature       = var.license_signature
+  license_email           = var.license_email
+  license_expiration_date = var.license_expiration_date
+
+  # Platform security secrets
+  jwt_signing_key       = var.jwt_signing_key
+  ipfs_cluster_secret   = var.ipfs_cluster_secret
+  state_encryption_key  = var.state_encryption_key
+  aws_access_key_id     = var.aws_access_key_id
+  aws_secret_access_key = var.aws_secret_access_key
+
+  depends_on = [
+    module.postgres,
+    module.redis,
+    module.object_storage,
+    module.secrets,
+    module.ingress_tls,
+    module.metrics_logs
+  ]
+}

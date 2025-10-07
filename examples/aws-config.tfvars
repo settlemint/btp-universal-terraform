@@ -42,7 +42,7 @@ k8s_cluster = {
 
     # Cluster features
     enable_irsa                         = true  # IAM Roles for Service Accounts
-    enable_ebs_csi_driver               = false # Disabled - causes timeout, enable later if needed
+    enable_ebs_csi_driver               = true  # Required for persistent volumes
     enable_aws_load_balancer_controller = false # Disabled for now
     enable_cluster_autoscaler           = false
 
@@ -153,9 +153,9 @@ secrets = {
 # BTP Platform deployment
 btp = {
   enabled       = true
-  chart         = "oci://registry.settlemint.com/settlemint-platform/SettleMint"
+  chart         = "oci://harbor.settlemint.com/settlemint/settlemint"
   namespace     = "settlemint"
   release_name  = "settlemint-platform"
-  chart_version = "7.0.0"
+  chart_version = "v7.32.3"
   # values_file   = "prod-values.yaml"
 }

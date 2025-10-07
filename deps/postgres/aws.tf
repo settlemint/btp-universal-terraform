@@ -22,6 +22,24 @@ resource "aws_db_subnet_group" "postgres" {
   }
 }
 
+# Create parameter group to allow non-SSL connections (SSL is optional)
+resource "aws_db_parameter_group" "postgres" {
+  count  = var.mode == "aws" ? 1 : 0
+  name   = "${var.aws.identifier}-pg"
+  family = "postgres15"
+
+  parameter {
+    name  = "rds.force_ssl"
+    value = "0"
+  }
+
+  tags = {
+    Name        = "${var.aws.identifier}-parameter-group"
+    ManagedBy   = "terraform"
+    Application = "btp-postgres"
+  }
+}
+
 # RDS PostgreSQL instance
 resource "aws_db_instance" "postgres" {
   count                  = var.mode == "aws" ? 1 : 0
@@ -35,6 +53,7 @@ resource "aws_db_instance" "postgres" {
   password               = var.aws.password != null ? var.aws.password : random_password.postgres_password[0].result
   vpc_security_group_ids = var.aws.security_group_ids
   db_subnet_group_name   = var.aws.subnet_group_name != null ? var.aws.subnet_group_name : (length(var.aws.subnet_ids) > 0 ? aws_db_subnet_group.postgres[0].name : null)
+  parameter_group_name   = aws_db_parameter_group.postgres[0].name
   skip_final_snapshot    = var.aws.skip_final_snapshot
   publicly_accessible    = var.aws.publicly_accessible
 
