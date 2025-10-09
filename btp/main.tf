@@ -1,24 +1,36 @@
 
-# Generate random secrets if not provided
-resource "random_password" "jwt_signing_key" {
-  count   = var.jwt_signing_key == null ? 1 : 0
-  length  = 32
-  special = false
-}
-
-# IPFS cluster secret must be a 64-character hex string
-resource "random_id" "ipfs_cluster_secret" {
-  count       = var.ipfs_cluster_secret == null ? 1 : 0
-  byte_length = 32  # 32 bytes = 64 hex characters
-}
-
-resource "random_password" "state_encryption_key" {
-  count   = var.state_encryption_key == null ? 1 : 0
-  length  = 32
-  special = false
+# Constants for Helm deployment
+locals {
+  helm_timeout_seconds = 900 # 15 minutes (large chart with many components)
 }
 
 locals {
+  # Parse values file once if provided
+  values_from_file = var.values_file != null ? yamldecode(file(var.values_file)) : {}
+
+  # Secret management with clear precedence:
+  # 1. Explicit variable (REQUIRED)
+  # 2. Values file
+  jwt_signing_key = coalesce(
+    var.jwt_signing_key,
+    try(local.values_from_file.auth.jwtSigningKey, null)
+  )
+
+  ipfs_cluster_secret = coalesce(
+    var.ipfs_cluster_secret,
+    try(local.values_from_file.support["ipfs-cluster"].sharedSecret, null)
+  )
+
+  state_encryption_key = coalesce(
+    var.state_encryption_key,
+    try(local.values_from_file.features.deploymentEngine.state.credentials.encryptionKey, null)
+  )
+
+  internal_auth_jwt_signing_key = coalesce(
+    var.jwt_signing_key,
+    try(local.values_from_file.internal.authJWT.signingKey, null)
+  )
+
   # Dynamic dependency values - auto-injected from module outputs
   # These values are built from the normalized outputs of dependency modules
   # and work regardless of mode (aws/azure/gcp/k8s/byo)
@@ -37,7 +49,7 @@ locals {
       enabled  = true
       host     = var.postgres.host
       port     = var.postgres.port
-      user     = var.postgres.username  # Chart expects 'user' not 'username'
+      user     = var.postgres.username # Chart expects 'user' not 'username'
       password = var.postgres.password
       database = var.postgres.database
       sslMode  = "require" # AWS RDS requires SSL
@@ -55,13 +67,13 @@ locals {
 
     # Object Storage (S3/MinIO/etc) - normalized across all providers
     objectStorage = {
-      enabled       = true
-      endpoint      = var.object_storage.endpoint
-      bucket        = var.object_storage.bucket
-      accessKey     = var.object_storage.access_key
-      secretKey     = var.object_storage.secret_key
-      region        = var.object_storage.region
-      usePathStyle  = var.object_storage.use_path_style
+      enabled      = true
+      endpoint     = var.object_storage.endpoint
+      bucket       = var.object_storage.bucket
+      accessKey    = var.object_storage.access_key
+      secretKey    = var.object_storage.secret_key
+      region       = var.object_storage.region
+      usePathStyle = var.object_storage.use_path_style
     }
 
     # Vault / Secrets Manager - normalized across all providers
@@ -69,7 +81,7 @@ locals {
       enabled = var.secrets.vault_addr != null
       address = var.secrets.vault_addr
       # Token should be provided via values for prod, or use k8s auth
-      token   = var.secrets.token != null ? var.secrets.token : null
+      token = var.secrets.token != null ? var.secrets.token : null
     }
 
     # Use cluster-wide ingress-nginx we installed separately
@@ -93,11 +105,7 @@ locals {
   # JWT signing key configuration - separate from oauth to avoid merge conflicts
   jwt_auth_values = {
     auth = {
-      jwtSigningKey = var.jwt_signing_key != null ? var.jwt_signing_key : (
-        var.values_file != null ? try(yamldecode(file(var.values_file)).auth.jwtSigningKey, null) : null
-      ) != null ? try(yamldecode(file(var.values_file)).auth.jwtSigningKey, null) : (
-        length(random_password.jwt_signing_key) > 0 ? random_password.jwt_signing_key[0].result : "CHANGE_ME_INSECURE_DEFAULT"
-      )
+      jwtSigningKey = local.jwt_signing_key
     }
   }
 
@@ -111,8 +119,8 @@ locals {
   license = {
     username       = var.license_username
     password       = var.license_password
-    accountName    = var.license_username  # Harbor account name
-    accountToken   = var.license_password  # Harbor account token
+    accountName    = var.license_username # Harbor account name
+    accountToken   = var.license_password # Harbor account token
     signature      = var.license_signature
     email          = var.license_email
     expirationDate = var.license_expiration_date
@@ -157,11 +165,7 @@ locals {
           {
             credentials = merge(
               {
-                encryptionKey = var.state_encryption_key != null ? var.state_encryption_key : (
-                  var.values_file != null ? try(yamldecode(file(var.values_file)).features.deploymentEngine.state.credentials.encryptionKey, null) : null
-                ) != null ? try(yamldecode(file(var.values_file)).features.deploymentEngine.state.credentials.encryptionKey, null) : (
-                  length(random_password.state_encryption_key) > 0 ? base64encode(random_password.state_encryption_key[0].result) : "CHANGE_ME_INSECURE_DEFAULT"
-                )
+                encryptionKey = local.state_encryption_key
               },
               # Only include AWS credentials if both are provided
               var.aws_access_key_id != null && var.aws_secret_access_key != null ? {
@@ -234,15 +238,11 @@ locals {
     # Storage configuration for platform components
     support = {
       ingress-nginx = {
-        enabled = false  # Use cluster-wide ingress-nginx installed separately
+        enabled = false # Use cluster-wide ingress-nginx installed separately
       }
       ipfs-cluster = {
         # IPFS cluster secret must be 64-char hex - passed to subchart as sharedSecret
-        sharedSecret = var.ipfs_cluster_secret != null ? var.ipfs_cluster_secret : (
-          var.values_file != null ? try(yamldecode(file(var.values_file)).support["ipfs-cluster"].sharedSecret, null) : null
-        ) != null ? try(yamldecode(file(var.values_file)).support["ipfs-cluster"].sharedSecret, null) : (
-          length(random_id.ipfs_cluster_secret) > 0 ? random_id.ipfs_cluster_secret[0].hex : "CHANGE_ME_INSECURE_DEFAULT"
-        )
+        sharedSecret = local.ipfs_cluster_secret
         cluster = {
           storage = {
             storageClassName = "gp2"
@@ -270,7 +270,7 @@ locals {
       victoria-metrics-single = {
         server = {
           persistentVolume = {
-            storageClassName = "gp2"  # Correct field name from the chart's values.yaml
+            storageClassName = "gp2" # Correct field name from the chart's values.yaml
           }
         }
       }
@@ -288,11 +288,7 @@ locals {
         }
       }
       authJWT = {
-        signingKey = var.jwt_signing_key != null ? var.jwt_signing_key : (
-          var.values_file != null ? try(yamldecode(file(var.values_file)).internal.authJWT.signingKey, null) : null
-        ) != null ? try(yamldecode(file(var.values_file)).internal.authJWT.signingKey, null) : (
-          length(random_password.jwt_signing_key) > 0 ? random_password.jwt_signing_key[0].result : "CHANGE_ME_INSECURE_DEFAULT"
-        )
+        signingKey = local.internal_auth_jwt_signing_key
       }
     }
   }
@@ -339,7 +335,7 @@ resource "helm_release" "btp" {
   version         = var.chart_version != "" ? var.chart_version : null
   atomic          = false
   cleanup_on_fail = false
-  timeout         = 300 # 5 minutes - reduced from 10 for faster feedback
+  timeout         = local.helm_timeout_seconds
 
   values = var.values_file != null ? [
     yamlencode(merge(

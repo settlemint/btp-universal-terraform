@@ -1,14 +1,5 @@
 # AWS mode: Deploy PostgreSQL via RDS
 
-# Generate a random password if not provided
-# RDS password constraints: only printable ASCII except '/', '@', '"', ' '
-resource "random_password" "postgres_password" {
-  count            = var.mode == "aws" && var.aws.password == null ? 1 : 0
-  length           = 32
-  special          = true
-  override_special = "!#$%&*()-_=+[]{}~^:?"
-}
-
 # Create DB subnet group if subnets are provided but no group name
 resource "aws_db_subnet_group" "postgres" {
   count      = var.mode == "aws" && var.aws.subnet_group_name == null && length(var.aws.subnet_ids) > 0 ? 1 : 0
@@ -50,7 +41,7 @@ resource "aws_db_instance" "postgres" {
   allocated_storage      = var.aws.allocated_storage
   db_name                = var.aws.database
   username               = var.aws.username
-  password               = var.aws.password != null ? var.aws.password : random_password.postgres_password[0].result
+  password               = var.aws.password
   vpc_security_group_ids = var.aws.security_group_ids
   db_subnet_group_name   = var.aws.subnet_group_name != null ? var.aws.subnet_group_name : (length(var.aws.subnet_ids) > 0 ? aws_db_subnet_group.postgres[0].name : null)
   parameter_group_name   = aws_db_parameter_group.postgres[0].name
@@ -84,6 +75,6 @@ locals {
   aws_host     = var.mode == "aws" ? aws_db_instance.postgres[0].address : null
   aws_port     = var.mode == "aws" ? aws_db_instance.postgres[0].port : null
   aws_user     = var.mode == "aws" ? aws_db_instance.postgres[0].username : null
-  aws_password = var.mode == "aws" ? (var.aws.password != null ? var.aws.password : random_password.postgres_password[0].result) : null
+  aws_password = var.mode == "aws" ? var.aws.password : null
   aws_database = var.mode == "aws" ? aws_db_instance.postgres[0].db_name : null
 }

@@ -5,14 +5,15 @@ resource "kubernetes_namespace" "this" {
 }
 
 locals {
-  k8s_release = var.k8s.release_name
-  k8s_ns      = var.namespace
+  k8s_release                  = var.k8s.release_name
+  k8s_ns                       = var.namespace
+  postgres_secret_wait_seconds = 30
 }
 
 # Wait for postgres operator to be ready and create secrets
 resource "time_sleep" "wait_for_postgres_secret" {
   count           = var.mode == "k8s" ? 1 : 0
-  create_duration = "30s"
+  create_duration = "${local.postgres_secret_wait_seconds}s"
 
   depends_on = [kubernetes_manifest.postgres_cluster]
 }

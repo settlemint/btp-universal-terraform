@@ -4,11 +4,6 @@ resource "kubernetes_namespace" "this" {
   metadata { name = var.namespace }
 }
 
-resource "random_password" "secret" {
-  count  = var.mode == "k8s" && var.k8s.secret_key == null ? 1 : 0
-  length = 30
-}
-
 locals {
   k8s_release = var.k8s.release_name
   k8s_ns      = var.namespace
@@ -28,7 +23,7 @@ resource "helm_release" "minio" {
     yamlencode(merge({
       auth = {
         rootUser     = coalesce(var.k8s.access_key, "minio")
-        rootPassword = coalesce(var.k8s.secret_key, try(random_password.secret[0].result, null))
+        rootPassword = var.k8s.secret_key
       },
       defaultBuckets = var.k8s.default_bucket,
       persistence    = { enabled = false },
@@ -41,7 +36,7 @@ locals {
   k8s_endpoint       = var.mode == "k8s" ? "http://${local.k8s_release}.${local.k8s_ns}.svc.cluster.local:9000" : null
   k8s_bucket         = var.mode == "k8s" ? var.k8s.default_bucket : null
   k8s_access_key     = var.mode == "k8s" ? coalesce(var.k8s.access_key, "minio") : null
-  k8s_secret_key     = var.mode == "k8s" ? coalesce(var.k8s.secret_key, try(random_password.secret[0].result, null)) : null
+  k8s_secret_key     = var.mode == "k8s" ? var.k8s.secret_key : null
   k8s_region         = var.mode == "k8s" ? "us-east-1" : null
   k8s_use_path_style = var.mode == "k8s" ? true : null
 }

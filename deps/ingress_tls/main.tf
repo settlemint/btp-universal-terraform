@@ -3,6 +3,11 @@ resource "kubernetes_namespace" "this" {
   metadata { name = var.namespace }
 }
 
+locals {
+  cert_manager_ready_seconds = 60
+  cert_manager_timeout       = 600
+}
+
 resource "helm_release" "ingress_nginx" {
   name            = var.release_name_nginx
   namespace       = var.namespace
@@ -31,7 +36,7 @@ resource "helm_release" "cert_manager" {
   atomic          = true
   cleanup_on_fail = true
   wait            = true
-  timeout         = 600
+  timeout         = local.cert_manager_timeout
 
   values = [
     yamlencode(merge({
@@ -43,7 +48,7 @@ resource "helm_release" "cert_manager" {
 # Wait for cert-manager CRDs to be installed
 resource "time_sleep" "wait_for_cert_manager" {
   depends_on      = [helm_release.cert_manager]
-  create_duration = "60s"
+  create_duration = "${local.cert_manager_ready_seconds}s"
 }
 
 # Create ClusterIssuer using kubectl via null_resource

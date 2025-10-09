@@ -1,12 +1,49 @@
 locals {
-  ns_ingress     = coalesce(try(var.ingress_tls.k8s.namespace, null), var.namespaces.ingress_tls, "btp-deps")
-  ns_postgres    = coalesce(try(var.postgres.k8s.namespace, null), var.namespaces.postgres, "btp-deps")
-  ns_redis       = coalesce(try(var.redis.k8s.namespace, null), var.namespaces.redis, "btp-deps")
-  ns_minio       = coalesce(try(var.object_storage.k8s.namespace, null), var.namespaces.object_storage, "btp-deps")
-  ns_metrics     = coalesce(try(var.metrics_logs.k8s.namespace, null), var.namespaces.metrics_logs, "btp-deps")
-  ns_oauth       = coalesce(try(var.oauth.k8s.namespace, null), var.namespaces.oauth, "btp-deps")
-  ns_secrets     = coalesce(try(var.secrets.k8s.namespace, null), var.namespaces.secrets, "btp-deps")
-  dep_namespaces = try(var.oauth.mode, "disabled") == "disabled" ? toset([local.ns_ingress, local.ns_postgres, local.ns_redis, local.ns_minio, local.ns_metrics, local.ns_secrets]) : toset([local.ns_ingress, local.ns_postgres, local.ns_redis, local.ns_minio, local.ns_metrics, local.ns_oauth, local.ns_secrets])
+  # Default namespace for all dependencies
+  default_namespace = "btp-deps"
+
+  # Simplified namespace resolution with clear precedence:
+  # 1. Component-specific k8s.namespace
+  # 2. Global namespace map
+  # 3. Default namespace
+  namespaces = {
+    ingress_tls    = coalesce(try(var.ingress_tls.k8s.namespace, null), var.namespaces.ingress_tls, local.default_namespace)
+    postgres       = coalesce(try(var.postgres.k8s.namespace, null), var.namespaces.postgres, local.default_namespace)
+    redis          = coalesce(try(var.redis.k8s.namespace, null), var.namespaces.redis, local.default_namespace)
+    object_storage = coalesce(try(var.object_storage.k8s.namespace, null), var.namespaces.object_storage, local.default_namespace)
+    metrics_logs   = coalesce(try(var.metrics_logs.k8s.namespace, null), var.namespaces.metrics_logs, local.default_namespace)
+    oauth          = coalesce(try(var.oauth.k8s.namespace, null), var.namespaces.oauth, local.default_namespace)
+    secrets        = coalesce(try(var.secrets.k8s.namespace, null), var.namespaces.secrets, local.default_namespace)
+  }
+
+  # OAuth configuration
+  oauth_enabled = try(var.oauth.mode, "disabled") != "disabled"
+
+  # Default null OAuth outputs
+  oauth_null_outputs = {
+    issuer        = null
+    admin_url     = null
+    client_id     = null
+    client_secret = null
+    scopes        = []
+    callback_urls = []
+  }
+
+  # Select OAuth outputs based on whether module is enabled
+  oauth_outputs = local.oauth_enabled && length(module.oauth) > 0 ? module.oauth[0] : local.oauth_null_outputs
+
+  # Dependency namespaces set (includes oauth only if enabled)
+  dep_namespaces = toset(
+    compact([
+      local.namespaces.ingress_tls,
+      local.namespaces.postgres,
+      local.namespaces.redis,
+      local.namespaces.object_storage,
+      local.namespaces.metrics_logs,
+      local.oauth_enabled ? local.namespaces.oauth : null,
+      local.namespaces.secrets
+    ])
+  )
 }
 
 # VPC Module - Creates dedicated VPC for AWS deployments
@@ -98,7 +135,7 @@ module "ingress_tls" {
   source = "./deps/ingress_tls"
 
   mode                       = try(var.ingress_tls.mode, "k8s")
-  namespace                  = local.ns_ingress
+  namespace                  = local.namespaces.ingress_tls
   manage_namespace           = false
   nginx_chart_version        = try(var.ingress_tls.k8s.nginx_chart_version, null)
   cert_manager_chart_version = try(var.ingress_tls.k8s.cert_manager_chart_version, null)
@@ -116,7 +153,7 @@ module "postgres" {
   source = "./deps/postgres"
 
   mode             = try(var.postgres.mode, "k8s")
-  namespace        = local.ns_postgres
+  namespace        = local.namespaces.postgres
   manage_namespace = false
   k8s              = try(var.postgres.k8s, {})
   aws = merge(
@@ -137,7 +174,7 @@ module "redis" {
   source = "./deps/redis"
 
   mode             = try(var.redis.mode, "k8s")
-  namespace        = local.ns_redis
+  namespace        = local.namespaces.redis
   manage_namespace = false
   k8s              = try(var.redis.k8s, {})
   aws = merge(
@@ -158,7 +195,7 @@ module "object_storage" {
   source = "./deps/object_storage"
 
   mode             = try(var.object_storage.mode, "k8s")
-  namespace        = local.ns_minio
+  namespace        = local.namespaces.object_storage
   manage_namespace = false
   k8s              = try(var.object_storage.k8s, {})
   aws              = try(var.object_storage.aws, {})
@@ -171,7 +208,7 @@ module "metrics_logs" {
   source = "./deps/metrics_logs"
 
   mode                     = try(var.metrics_logs.mode, "k8s")
-  namespace                = local.ns_metrics
+  namespace                = local.namespaces.metrics_logs
   manage_namespace         = false
   kp_stack_chart_version   = try(var.metrics_logs.k8s.kp_stack_chart_version, null)
   loki_stack_chart_version = try(var.metrics_logs.k8s.loki_stack_chart_version, null)
@@ -183,11 +220,11 @@ module "metrics_logs" {
 }
 
 module "oauth" {
-  count  = try(var.oauth.mode, "disabled") != "disabled" ? 1 : 0
+  count  = local.oauth_enabled ? 1 : 0
   source = "./deps/oauth"
 
   mode             = try(var.oauth.mode, "k8s")
-  namespace        = local.ns_oauth
+  namespace        = local.namespaces.oauth
   manage_namespace = false
   base_domain      = var.base_domain
   k8s              = try(var.oauth.k8s, {})
@@ -203,7 +240,7 @@ module "secrets" {
   source = "./deps/secrets"
 
   mode             = try(var.secrets.mode, "k8s")
-  namespace        = local.ns_secrets
+  namespace        = local.namespaces.secrets
   manage_namespace = false
   k8s              = try(var.secrets.k8s, {})
   aws              = try(var.secrets.aws, {})
@@ -233,24 +270,10 @@ module "btp" {
   postgres       = module.postgres
   redis          = module.redis
   object_storage = module.object_storage
-  oauth = try(var.oauth.mode, "disabled") == "disabled" ? {
-    issuer        = null
-    admin_url     = null
-    client_id     = null
-    client_secret = null
-    scopes        = []
-    callback_urls = []
-  } : (length(module.oauth) > 0 ? module.oauth[0] : {
-    issuer        = null
-    admin_url     = null
-    client_id     = null
-    client_secret = null
-    scopes        = []
-    callback_urls = []
-  })
-  secrets      = module.secrets
-  ingress_tls  = module.ingress_tls
-  metrics_logs = module.metrics_logs
+  oauth          = local.oauth_outputs
+  secrets        = module.secrets
+  ingress_tls    = module.ingress_tls
+  metrics_logs   = module.metrics_logs
 
   # License configuration
   license_username        = var.license_username

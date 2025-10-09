@@ -158,4 +158,22 @@ btp = {
   release_name  = "settlemint-platform"
   chart_version = "v7.32.3"
   # values_file   = "prod-values.yaml"
+
+  # Fix for p6m-app health check timeouts
+  values = {
+    "p6m-app" = {
+      livenessProbe = {
+        initialDelaySeconds = 30
+        timeoutSeconds      = 5
+        periodSeconds       = 10
+        failureThreshold    = 3
+      }
+      readinessProbe = {
+        initialDelaySeconds = 30
+        timeoutSeconds      = 5
+        periodSeconds       = 10
+        failureThreshold    = 3
+      }
+    }
+  }
 }

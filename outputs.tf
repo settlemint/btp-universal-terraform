@@ -1,4 +1,5 @@
 output "postgres" {
+  description = "PostgreSQL connection details including host, port, credentials, and database name"
   value = {
     connection_string = module.postgres.connection_string
     host              = module.postgres.host
@@ -11,6 +12,7 @@ output "postgres" {
 }
 
 output "redis" {
+  description = "Redis connection details including host, port, password, and TLS configuration"
   value = {
     host        = module.redis.host
     port        = module.redis.port
@@ -22,6 +24,7 @@ output "redis" {
 }
 
 output "object_storage" {
+  description = "Object storage (S3/MinIO/etc) connection details including endpoint, bucket, and credentials"
   value = {
     endpoint       = module.object_storage.endpoint
     bucket         = module.object_storage.bucket
@@ -34,6 +37,7 @@ output "object_storage" {
 }
 
 output "oauth" {
+  description = "OAuth/OIDC provider configuration including issuer, client credentials, and endpoints"
   value = length(module.oauth) > 0 ? {
     issuer        = module.oauth[0].issuer
     admin_url     = module.oauth[0].admin_url
@@ -53,6 +57,7 @@ output "oauth" {
 }
 
 output "secrets" {
+  description = "Secrets manager (Vault/etc) configuration including address, token, and mount paths"
   value = {
     vault_addr = module.secrets.vault_addr
     token      = module.secrets.token
@@ -63,6 +68,7 @@ output "secrets" {
 }
 
 output "ingress_tls" {
+  description = "Ingress and TLS configuration including ingress class and cert-manager issuer"
   value = {
     ingress_class = module.ingress_tls.ingress_class
     issuer_name   = module.ingress_tls.issuer_name
@@ -70,6 +76,7 @@ output "ingress_tls" {
 }
 
 output "metrics_logs" {
+  description = "Observability endpoints for Prometheus, Loki, and Grafana including credentials"
   value = {
     prometheus_endpoint = module.metrics_logs.prometheus_endpoint
     loki_endpoint       = module.metrics_logs.loki_endpoint

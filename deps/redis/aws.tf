@@ -1,14 +1,5 @@
 # AWS mode: Deploy Redis via ElastiCache
 
-# Generate a random auth token if transit encryption is enabled and no token provided
-resource "random_password" "redis_auth_token" {
-  count   = var.mode == "aws" && var.aws.transit_encryption_enabled && var.aws.auth_token == null ? 1 : 0
-  length  = 32
-  special = true
-  # ElastiCache auth token has specific character requirements
-  override_special = "!&#$^<>-"
-}
-
 # Create cache subnet group if subnets are provided but no group name
 resource "aws_elasticache_subnet_group" "redis" {
   count      = var.mode == "aws" && var.aws.subnet_group_name == null && length(var.aws.subnet_ids) > 0 ? 1 : 0
@@ -40,7 +31,7 @@ resource "aws_elasticache_replication_group" "redis" {
   # Transit encryption and authentication
   transit_encryption_enabled = var.aws.transit_encryption_enabled
   at_rest_encryption_enabled = var.aws.at_rest_encryption_enabled
-  auth_token                 = var.aws.transit_encryption_enabled ? (var.aws.auth_token != null ? var.aws.auth_token : random_password.redis_auth_token[0].result) : null
+  auth_token                 = var.aws.transit_encryption_enabled ? var.aws.auth_token : null
 
   # Maintenance and snapshots
   maintenance_window         = var.aws.maintenance_window
@@ -64,7 +55,7 @@ resource "aws_elasticache_replication_group" "redis" {
 locals {
   aws_host        = var.mode == "aws" ? aws_elasticache_replication_group.redis[0].primary_endpoint_address : null
   aws_port        = var.mode == "aws" ? 6379 : null
-  aws_password    = var.mode == "aws" && var.aws.transit_encryption_enabled ? (var.aws.auth_token != null ? var.aws.auth_token : random_password.redis_auth_token[0].result) : null
+  aws_password    = var.mode == "aws" && var.aws.transit_encryption_enabled ? var.aws.auth_token : null
   aws_scheme      = var.mode == "aws" ? (var.aws.transit_encryption_enabled ? "rediss" : "redis") : null
   aws_tls_enabled = var.mode == "aws" ? var.aws.transit_encryption_enabled : null
 }

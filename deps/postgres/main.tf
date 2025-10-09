@@ -4,51 +4,52 @@
 locals {
   mode = var.mode
 
+  # Map-based approach for cleaner conditional logic
+  outputs_by_mode = {
+    k8s = {
+      host     = local.k8s_host
+      port     = local.k8s_port
+      username = local.k8s_user
+      password = local.k8s_password
+      database = local.k8s_database
+    }
+    aws = {
+      host     = local.aws_host
+      port     = local.aws_port
+      username = local.aws_user
+      password = local.aws_password
+      database = local.aws_database
+    }
+    azure = {
+      host     = local.azure_host
+      port     = local.azure_port
+      username = local.azure_user
+      password = local.azure_password
+      database = local.azure_database
+    }
+    gcp = {
+      host     = local.gcp_host
+      port     = local.gcp_port
+      username = local.gcp_user
+      password = local.gcp_password
+      database = local.gcp_database
+    }
+    byo = {
+      host     = local.byo_host
+      port     = local.byo_port
+      username = local.byo_user
+      password = local.byo_password
+      database = local.byo_database
+    }
+  }
+
   # Normalize outputs from whichever provider is active
-  host = (
-    local.mode == "k8s" ? local.k8s_host :
-    local.mode == "aws" ? local.aws_host :
-    local.mode == "azure" ? local.azure_host :
-    local.mode == "gcp" ? local.gcp_host :
-    local.mode == "byo" ? local.byo_host :
-    null
-  )
-
-  port = (
-    local.mode == "k8s" ? local.k8s_port :
-    local.mode == "aws" ? local.aws_port :
-    local.mode == "azure" ? local.azure_port :
-    local.mode == "gcp" ? local.gcp_port :
-    local.mode == "byo" ? local.byo_port :
-    null
-  )
-
-  username = (
-    local.mode == "k8s" ? local.k8s_user :
-    local.mode == "aws" ? local.aws_user :
-    local.mode == "azure" ? local.azure_user :
-    local.mode == "gcp" ? local.gcp_user :
-    local.mode == "byo" ? local.byo_user :
-    null
-  )
-
-  password = (
-    local.mode == "k8s" ? local.k8s_password :
-    local.mode == "aws" ? local.aws_password :
-    local.mode == "azure" ? local.azure_password :
-    local.mode == "gcp" ? local.gcp_password :
-    local.mode == "byo" ? local.byo_password :
-    null
-  )
-
-  database = (
-    local.mode == "k8s" ? local.k8s_database :
-    local.mode == "aws" ? local.aws_database :
-    local.mode == "azure" ? local.azure_database :
-    local.mode == "gcp" ? local.gcp_database :
-    local.mode == "byo" ? local.byo_database :
-    null
-  )
+  outputs  = lookup(local.outputs_by_mode, local.mode, {})
+  host     = try(local.outputs.host, null)
+  port     = try(local.outputs.port, null)
+  username = try(local.outputs.username, null)
+  password = try(local.outputs.password, null)
+  database = try(local.outputs.database, null)
 
   # Build connection string
   connection_string = local.password != null ? "postgres://${local.username}:${local.password}@${local.host}:${local.port}/${local.database}?sslmode=disable" : ""
