@@ -15,6 +15,9 @@ How k8s mode works (this repo)
 
 Managed mode (guidance)
 - AWS S3: enforce encryption, versioning, lifecycle; IAM policies
+- Terraform force-deletes managed buckets by default (`aws.force_destroy = true`) so destroys succeed even with leftover objects; set to `false` if you need protection against accidental wipes.
+- Reuse an existing bucket by setting `aws.manage_bucket = false`; Terraform will reference it instead of creating a new one.
+- Default bucket names follow `btp-<hash>-artifacts`, derived from `base_domain` to stay globally unique.
 - Azure Blob: storage account + container, SAS/keys; consider native SDKs
 - GCP GCS: bucket with uniform access; HMAC keys for S3 clients
 
@@ -28,6 +31,14 @@ object_storage = { mode = "k8s", k8s = { default_bucket = "btp-artifacts" } }
 object_storage = {
   mode = "managed"
   managed = { provider = "aws", bucket = "btp-artifacts", region = "eu-west-1" }
+}
+
+object_storage = {
+  mode = "aws"
+  aws = {
+    manage_bucket = false # Skip creation and bind to an existing bucket
+    bucket_name   = "existing-btp-artifacts"
+  }
 }
 ```
 
@@ -49,6 +60,7 @@ mc ls local
 Security & gotchas
 - Enforce versioning, encryption, lifecycle on managed buckets; avoid plaintext creds in repos
 - Path-style vs virtual-hosted addressing differs by provider/gateway; use `use_path_style` when needed
+- AWS bucket overrides must be globally unique and lowercase; omit `bucket_name` to let the module derive a hashed name safely.
 
 Next steps
 - See how `/btp` consumes these outputs in docs/modules/btp.md

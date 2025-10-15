@@ -55,13 +55,11 @@ resource "aws_cognito_user_pool" "pool" {
     ManagedBy   = "terraform"
     Application = "btp-oauth"
   }
-}
 
-# Create a domain for the user pool
-resource "aws_cognito_user_pool_domain" "pool_domain" {
-  count        = var.mode == "aws" && var.aws.user_pool_id == null && var.aws.domain_prefix != null ? 1 : 0
-  domain       = var.aws.domain_prefix
-  user_pool_id = aws_cognito_user_pool.pool[0].id
+  # Ensure pool is only destroyed after domain is deleted
+  lifecycle {
+    create_before_destroy = false
+  }
 }
 
 # Create Cognito User Pool Client
@@ -105,11 +103,61 @@ data "aws_cognito_user_pool" "existing" {
 }
 
 locals {
+  base_domain_slug = var.mode == "aws" ? substr(replace(replace(lower(var.base_domain), ".", "-"), "_", "-"), 0, 52) : null
+
+  sanitized_domain_slug = var.mode == "aws" && local.base_domain_slug != null ? join(
+    "-",
+    compact(
+      split(
+        "-",
+        replace(
+          replace(
+            replace(
+              replace(local.base_domain_slug, "-aws-", "-"),
+              "aws-",
+              ""
+            ),
+            "-aws",
+            "-"
+          ),
+          "aws",
+          ""
+        )
+      )
+    )
+  ) : null
+
+  fallback_domain_prefix = var.mode == "aws" ? (
+    length(try(local.sanitized_domain_slug, "")) >= 3 ?
+    local.sanitized_domain_slug :
+    format("btp-%s", substr(md5(var.base_domain), 0, 10))
+  ) : null
+
+  provided_domain_prefix = var.mode == "aws" && try(var.aws.domain_prefix, null) != null ? trimspace(var.aws.domain_prefix) : ""
+
+  derived_domain_prefix = var.mode == "aws" ? (
+    length(local.provided_domain_prefix) > 0 ?
+    local.provided_domain_prefix :
+    local.fallback_domain_prefix
+  ) : null
+}
+
+resource "aws_cognito_user_pool_domain" "pool_domain" {
+  count        = var.mode == "aws" && var.aws.user_pool_id == null && local.derived_domain_prefix != null ? 1 : 0
+  domain       = local.derived_domain_prefix
+  user_pool_id = aws_cognito_user_pool.pool[0].id
+
+  lifecycle {
+    create_before_destroy = false
+  }
+}
+
+locals {
   # Determine which user pool to use
   user_pool_id = var.mode == "aws" ? (
     var.aws.user_pool_id != null ? var.aws.user_pool_id : aws_cognito_user_pool.pool[0].id
   ) : null
-
+  aws_domain_host   = var.mode == "aws" && local.derived_domain_prefix != null ? "${local.derived_domain_prefix}.auth.${var.aws.region}.amazoncognito.com" : null
   aws_issuer        = var.mode == "aws" ? "https://cognito-idp.${var.aws.region}.amazonaws.com/${local.user_pool_id}" : null
   aws_admin_url     = var.mode == "aws" ? "https://${var.aws.region}.console.aws.amazon.com/cognito/v2/idp/user-pools/${local.user_pool_id}" : null
   aws_client_id     = var.mode == "aws" ? (var.aws.client_id != null ? var.aws.client_id : aws_cognito_user_pool_client.client[0].id) : null

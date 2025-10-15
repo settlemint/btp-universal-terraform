@@ -59,7 +59,7 @@
 - `docs/architecture/*`
 - `docs/modules/root.md`
 - `docs/modules/cloud/{aws,azure,gcp,generic}.md`
-- `docs/modules/deps/{postgres,redis,object_storage,oauth,secrets,ingress_tls,metrics_logs}.md`
+- `docs/modules/deps/{postgres,redis,object_storage,dns,oauth,secrets,ingress_tls,metrics_logs}.md`
 - `docs/modules/btp.md`
 - `docs/reference/{terraform/*, iam/*, compatibility.md}`
 - `docs/operations/{preflight.md, runbooks/*.md, troubleshooting.md}`
@@ -219,4 +219,3 @@ For each of `/deps/*`, `/cloud/*`, `/btp`, and root:
 3) Operations (preflight, runbooks, troubleshooting) and Examples catalog.
 4) Security, IAM references, Cost/Sizing, Compatibility matrix automation.
 5) Contributions, ADRs, cross‑links and polish.
-

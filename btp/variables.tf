@@ -14,6 +14,12 @@ variable "namespace" {
   default = "settlemint"
 }
 
+variable "deployment_namespace" {
+  description = "Kubernetes namespace for workload deployments referenced in auto-generated values"
+  type        = string
+  default     = "deployments"
+}
+
 variable "values" {
   type    = map(any)
   default = {}
@@ -51,6 +57,19 @@ variable "oauth" { type = any }
 variable "secrets" { type = any }
 variable "ingress_tls" { type = any }
 variable "metrics_logs" { type = any }
+variable "dns" {
+  description = "Normalized DNS configuration and ingress hints"
+  type = object({
+    hostname            = string
+    wildcard_hostname   = optional(string)
+    tls_secret_name     = string
+    tls_hosts           = list(string)
+    ingress_annotations = optional(map(string))
+    ssl_redirect        = optional(bool)
+  })
+  default  = null
+  nullable = true
+}
 
 # Optional license fields; if provided, injected into chart values under .license
 variable "license_username" {
@@ -110,6 +129,27 @@ variable "aws_access_key_id" {
 
 variable "aws_secret_access_key" {
   description = "AWS secret access key for cloud storage"
+  type        = string
+  default     = null
+  sensitive   = true
+}
+
+variable "google_oauth_client_id" {
+  description = "Google OAuth client ID"
+  type        = string
+  default     = null
+  sensitive   = false
+}
+
+variable "google_oauth_client_secret" {
+  description = "Google OAuth client secret"
+  type        = string
+  default     = null
+  sensitive   = true
+}
+
+variable "grafana_admin_password" {
+  description = "Grafana admin password"
   type        = string
   default     = null
   sensitive   = true

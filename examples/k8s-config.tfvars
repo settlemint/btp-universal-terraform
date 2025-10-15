@@ -88,6 +88,6 @@ btp = {
   chart         = "oci://harbor.settlemint.com/settlemint/settlemint"
   namespace     = "settlemint"
   release_name  = "settlemint-platform"
-  chart_version = "v7.32.3"
+  chart_version = "v7.32.10"
   values_file   = "enhanced-dev-values.yaml"
 }

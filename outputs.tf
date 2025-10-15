@@ -75,6 +75,68 @@ output "ingress_tls" {
   }
 }
 
+output "dns" {
+  description = "DNS automation outputs including managed records and ingress hints"
+  value = {
+    hostname            = module.dns.hostname
+    wildcard_hostname   = module.dns.wildcard_hostname
+    tls_secret_name     = module.dns.tls_secret_name
+    tls_hosts           = module.dns.tls_hosts
+    ingress_annotations = module.dns.ingress_annotations
+    ssl_redirect        = module.dns.ssl_redirect
+    records             = module.dns.records
+  }
+}
+
+locals {
+  summary_platform_hostname      = coalesce(module.dns.hostname, coalesce(var.base_domain, "settlemint.local"))
+  summary_platform_url           = format("https://%s", local.summary_platform_hostname)
+  summary_grafana_raw            = try(module.metrics_logs.grafana_url, "")
+  summary_grafana_url            = length(trimspace(local.summary_grafana_raw)) > 0 ? local.summary_grafana_raw : format("https://grafana.%s", local.summary_platform_hostname)
+  summary_object_storage_console = try(var.object_storage.mode, "k8s") == "aws" && module.object_storage.region != null ? format("https://s3.console.aws.amazon.com/s3/buckets/%s?region=%s", module.object_storage.bucket, module.object_storage.region) : null
+  summary_postgres_endpoint      = format("%s:%s (db=%s)", module.postgres.host, module.postgres.port, module.postgres.database)
+  summary_redis_endpoint         = format("%s:%s (tls=%s)", module.redis.host, module.redis.port, module.redis.tls_enabled)
+  summary_oauth_issuer           = length(module.oauth) > 0 ? module.oauth[0].issuer : null
+  summary_metrics_endpoints = [
+    try(module.metrics_logs.prometheus_endpoint, null),
+    try(module.metrics_logs.loki_endpoint, null)
+  ]
+  summary_object_storage_line = local.summary_object_storage_console != null ? format("Object Storage (AWS console) → %s", local.summary_object_storage_console) : format("Object Storage endpoint → %s (bucket=%s)", module.object_storage.endpoint, module.object_storage.bucket)
+  summary_lines = compact(concat(
+    [
+      format("SettleMint Platform → %s", local.summary_platform_url),
+      format("Grafana (user=%s) → %s", module.metrics_logs.grafana_username, local.summary_grafana_url),
+      format("PostgreSQL → %s", local.summary_postgres_endpoint),
+      format("Redis → %s", local.summary_redis_endpoint),
+      local.summary_object_storage_line
+    ],
+    local.summary_oauth_issuer != null ? [format("OAuth issuer → %s", local.summary_oauth_issuer)] : [],
+    [for endpoint in local.summary_metrics_endpoints : format("Observability endpoint → %s", endpoint) if endpoint != null]
+  ))
+}
+
+output "post_deploy_urls" {
+  description = "Key endpoints to verify after deployment."
+  value = {
+    platform_url               = local.summary_platform_url
+    grafana_url                = local.summary_grafana_url
+    grafana_username           = module.metrics_logs.grafana_username
+    postgres_endpoint          = local.summary_postgres_endpoint
+    redis_endpoint             = local.summary_redis_endpoint
+    object_storage_console_url = local.summary_object_storage_console
+    object_storage_endpoint    = module.object_storage.endpoint
+    object_storage_bucket      = module.object_storage.bucket
+    oauth_issuer               = local.summary_oauth_issuer
+    prometheus_endpoint        = try(module.metrics_logs.prometheus_endpoint, null)
+    loki_endpoint              = try(module.metrics_logs.loki_endpoint, null)
+  }
+}
+
+output "post_deploy_message" {
+  description = "Human-readable summary of endpoints to test post deployment."
+  value       = join("\n", local.summary_lines)
+}
+
 output "metrics_logs" {
   description = "Observability endpoints for Prometheus, Loki, and Grafana including credentials"
   value = {

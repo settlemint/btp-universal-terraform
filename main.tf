@@ -44,6 +44,31 @@ locals {
       local.namespaces.secrets
     ])
   )
+
+  ingress_tls_acme_explicit_raw = try(trimspace(var.ingress_tls.k8s.acme_email), "")
+  ingress_tls_acme_explicit     = length(local.ingress_tls_acme_explicit_raw) > 0 ? local.ingress_tls_acme_explicit_raw : null
+  ingress_tls_acme_is_placeholder = (
+    local.ingress_tls_acme_explicit != null ?
+    can(regex("example\\.com$", lower(local.ingress_tls_acme_explicit))) :
+    false
+  )
+
+  ingress_tls_acme_candidates = compact([
+    !local.ingress_tls_acme_is_placeholder ? local.ingress_tls_acme_explicit : null,
+    try(trimspace(var.license_email), "") != "" ? try(trimspace(var.license_email), "") : null
+  ])
+
+  ingress_tls_acme_email = length(local.ingress_tls_acme_candidates) > 0 ? local.ingress_tls_acme_candidates[0] : null
+
+  ingress_tls_wildcard_hosts = compact([
+    try(module.dns.wildcard_hostname, null)
+  ])
+
+  ingress_tls_default_certificate = length(local.ingress_tls_wildcard_hosts) > 0 ? {
+    enabled     = true
+    secret_name = format("%s-wildcard", replace(var.base_domain, ".", "-"))
+    hosts       = concat(local.ingress_tls_wildcard_hosts, [module.dns.hostname])
+  } : null
 }
 
 # VPC Module - Creates dedicated VPC for AWS deployments
@@ -116,6 +141,58 @@ resource "null_resource" "cleanup_k8s_loadbalancers" {
   ]
 }
 
+resource "null_resource" "cleanup_k8s_cni_enis" {
+  count = contains(["aws"], try(var.k8s_cluster.mode, "disabled")) ? 1 : 0
+
+  triggers = {
+    cluster_name = try(var.k8s_cluster.aws.cluster_name, "")
+    vpc_id       = module.vpc.vpc_id
+    region = coalesce(
+      try(var.k8s_cluster.aws.region, null),
+      try(var.vpc.aws.region, null),
+      "us-east-1"
+    )
+  }
+
+  provisioner "local-exec" {
+    when       = destroy
+    on_failure = continue
+    command    = <<-EOT
+      set -euo pipefail
+      export AWS_REGION="${self.triggers.region}"
+      CLUSTER="${self.triggers.cluster_name}"
+      VPC_ID="${self.triggers.vpc_id}"
+
+      if [ -z "$CLUSTER" ] || [ -z "$VPC_ID" ]; then
+        exit 0
+      fi
+
+      echo "🔍 Checking for residual ENIs in VPC $VPC_ID for cluster $CLUSTER"
+      for _ in $(seq 1 6); do
+        ENIS=$(aws ec2 describe-network-interfaces \
+          --filters "Name=tag:cluster.k8s.amazonaws.com/name,Values=$CLUSTER" "Name=vpc-id,Values=$VPC_ID" \
+          --query 'NetworkInterfaces[].NetworkInterfaceId' --output text || echo "")
+
+        if [ -z "$ENIS" ] || [ "$ENIS" = "None" ]; then
+          echo "✅ No residual ENIs detected"
+          exit 0
+        fi
+
+        for ENI in $ENIS; do
+          echo "🧹 Deleting ENI $ENI"
+          aws ec2 delete-network-interface --network-interface-id "$ENI" || true
+        done
+
+        sleep 10
+      done
+
+      echo "⚠️ Some ENIs may remain; please verify manually."
+    EOT
+  }
+
+  depends_on = [module.k8s_cluster]
+}
+
 resource "kubernetes_namespace" "deps" {
   for_each = local.dep_namespaces
 
@@ -146,7 +223,16 @@ module "ingress_tls" {
   values_cert_manager        = try(var.ingress_tls.k8s.values_cert_manager, {})
   kubeconfig_path            = local.kubeconfig_path
 
-  depends_on = [kubernetes_namespace.deps]
+  # Pass Route53 zone ID for DNS-01 challenges when using AWS DNS
+  route53_zone_id                 = module.dns.route53_zone_id
+  aws_region                      = try(var.object_storage.region, "eu-central-1")
+  route53_credentials_secret_name = try(var.ingress_tls.k8s.route53_credentials_secret_name, null)
+  aws_access_key_id               = var.aws_access_key_id
+  aws_secret_access_key           = var.aws_secret_access_key
+  acme_email                      = local.ingress_tls_acme_email
+  default_certificate             = local.ingress_tls_default_certificate
+
+  depends_on = [kubernetes_namespace.deps, module.dns]
 }
 
 module "postgres" {
@@ -159,6 +245,7 @@ module "postgres" {
   aws = merge(
     try(var.postgres.aws, {}),
     {
+      password           = var.postgres_password
       subnet_ids         = module.vpc.private_subnet_ids
       security_group_ids = module.vpc.rds_security_group_id != null ? [module.vpc.rds_security_group_id] : []
     }
@@ -197,11 +284,31 @@ module "object_storage" {
   mode             = try(var.object_storage.mode, "k8s")
   namespace        = local.namespaces.object_storage
   manage_namespace = false
+  base_domain      = var.base_domain
   k8s              = try(var.object_storage.k8s, {})
   aws              = try(var.object_storage.aws, {})
   azure            = try(var.object_storage.azure, {})
   gcp              = try(var.object_storage.gcp, {})
   byo              = try(var.object_storage.byo, null)
+}
+
+module "dns" {
+  source = "./deps/dns"
+
+  mode                    = try(var.dns.mode, "byo")
+  domain                  = coalesce(try(var.dns.domain, null), var.base_domain)
+  release_name            = var.btp.release_name
+  enable_wildcard         = try(var.dns.enable_wildcard, true)
+  include_wildcard_in_tls = coalesce(try(var.dns.include_wildcard_in_tls, null), try(var.dns.enable_wildcard, false), false)
+  cert_manager_issuer     = try(var.dns.cert_manager_issuer, null)
+  tls_secret_name         = try(var.dns.tls_secret_name, null)
+  ssl_redirect            = try(var.dns.ssl_redirect, true)
+  annotations             = try(var.dns.annotations, {})
+  aws                     = try(var.dns.aws, null)
+  azure                   = try(var.dns.azure, null)
+  gcp                     = try(var.dns.gcp, null)
+  cf                      = try(var.dns.cf, null)
+  byo                     = try(var.dns.byo, null)
 }
 
 module "metrics_logs" {
@@ -256,13 +363,14 @@ module "btp" {
   count  = var.btp.enabled ? 1 : 0
   source = "./btp"
 
-  chart            = var.btp.chart
-  chart_version    = var.btp.chart_version
-  namespace        = var.btp.namespace
-  release_name     = var.btp.release_name
-  values           = var.btp.values
-  values_file      = var.btp.values_file
-  create_namespace = true
+  chart                = var.btp.chart
+  chart_version        = var.btp.chart_version
+  namespace            = var.btp.namespace
+  deployment_namespace = var.btp.deployment_namespace
+  release_name         = var.btp.release_name
+  values               = var.btp.values
+  values_file          = var.btp.values_file
+  create_namespace     = true
 
   base_domain = var.base_domain
 
@@ -274,6 +382,7 @@ module "btp" {
   secrets        = module.secrets
   ingress_tls    = module.ingress_tls
   metrics_logs   = module.metrics_logs
+  dns            = module.dns
 
   # License configuration
   license_username        = var.license_username
@@ -289,12 +398,20 @@ module "btp" {
   aws_access_key_id     = var.aws_access_key_id
   aws_secret_access_key = var.aws_secret_access_key
 
+  # Google OAuth (temporary - for AWS + Google auth setup)
+  google_oauth_client_id     = var.google_oauth_client_id
+  google_oauth_client_secret = var.google_oauth_client_secret
+
+  # Grafana admin password
+  grafana_admin_password = var.grafana_admin_password
+
   depends_on = [
     module.postgres,
     module.redis,
     module.object_storage,
     module.secrets,
     module.ingress_tls,
-    module.metrics_logs
+    module.metrics_logs,
+    module.dns
   ]
 }

@@ -20,6 +20,12 @@ variable "manage_namespace" {
   default     = false
 }
 
+variable "base_domain" {
+  type        = string
+  description = "Base domain used to derive unique resource identifiers (e.g., bucket names)."
+  default     = ""
+}
+
 # Kubernetes-specific variables
 variable "k8s" {
   type = object({
@@ -37,14 +43,16 @@ variable "k8s" {
 # AWS-specific variables
 variable "aws" {
   type = object({
-    bucket_name         = optional(string, "btp-artifacts")
+    bucket_name         = optional(string)
     region              = optional(string, "us-east-1")
     access_key          = optional(string)
     secret_key          = optional(string)
     versioning_enabled  = optional(bool, false)
     kms_key_id          = optional(string)
     block_public_access = optional(bool, true)
+    force_destroy       = optional(bool, true)
     create_iam_user     = optional(bool, true)
+    manage_bucket       = optional(bool, true)
     lifecycle_rules = optional(list(object({
       id              = string
       enabled         = bool
@@ -57,6 +65,23 @@ variable "aws" {
   })
   default     = {}
   description = "AWS S3 configuration"
+
+  validation {
+    condition = !(
+      try(var.aws.manage_bucket, true) == false &&
+      length(try(trimspace(var.aws.bucket_name), "")) == 0
+    )
+    error_message = "When aws.manage_bucket is false you must provide aws.bucket_name."
+  }
+
+  validation {
+    condition = (
+      length(try(trimspace(var.aws.bucket_name), "")) == 0 ||
+      try(trimspace(var.aws.bucket_name), "") ==
+      lower(try(trimspace(var.aws.bucket_name), ""))
+    )
+    error_message = "aws.bucket_name must be lowercase."
+  }
 }
 
 # Azure-specific variables

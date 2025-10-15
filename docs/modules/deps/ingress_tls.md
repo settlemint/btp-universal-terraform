@@ -10,7 +10,10 @@ Modes at a glance
 
 How k8s mode works (this repo)
 - Installs ingress-nginx and cert-manager (CRDs), creates a self-signed ClusterIssuer
-- Inputs: `nginx_chart_version`, `cert_manager_chart_version`, `issuer_name`, `values_*`
+- Switches to Route53 DNS-01 validation when a zone ID is passed from `/deps/dns`; if AWS credentials are provided it seeds a `route53-credentials` Secret automatically.
+- Inputs: `nginx_chart_version`, `cert_manager_chart_version`, `issuer_name`, `values_*`, `acme_email`, `route53_credentials_secret_name`
+- If `acme_email` is unset or uses a placeholder (e.g., `example.com`), Terraform falls back to the license email so the Let's Encrypt account registers successfully.
+- Provisions a wildcard certificate in the ingress-nginx namespace and sets it as the controller's default, so dynamically-created services (e.g., deployment engine nodes) immediately serve trusted HTTPS even without custom TLS blocks.
 - Outputs: `ingress_class="nginx"`, `issuer_name`
 
 Managed mode (guidance)
@@ -38,6 +41,7 @@ kubectl get clusterissuer
 Security & gotchas
 - Use real ACME/provider-managed certs outside local; private LBs and WAFs recommended
 - Webhook timing for cert-manager CRDs — this module waits, but slow clusters may need extra time
+- Override `acme_email` so Let's Encrypt notifications reach the right team; defaults fall back to the license email before using the internal SettleMint address.
 
 Next steps
 - Configure application hosts in `/btp` values referencing the chosen issuer

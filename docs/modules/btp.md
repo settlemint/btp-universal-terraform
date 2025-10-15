@@ -6,12 +6,13 @@ What this does (in plain English)
 
 At a glance
 - Inputs
-  - `chart`, `chart_version`, `namespace`, `release_name`, `create_namespace`
+  - `chart`, `chart_version`, `namespace`, `deployment_namespace`, `release_name`, `create_namespace`
   - `values` (map) and `values_file` (YAML) merged with auto-generated values
   - `base_domain` influences dev defaults for ingress hosts
-  - Dependencies: `postgres`, `redis`, `object_storage`, `oauth`, `secrets`, `ingress_tls`, `metrics_logs`
+  - Dependencies: `postgres`, `redis`, `object_storage`, `dns`, `oauth`, `secrets`, `ingress_tls`, `metrics_logs`
 - Auto-wiring
   - Ingress class and issuer from `ingress_tls`
+  - Hostnames, TLS secret naming, and ingress annotations from `dns` (falls back to `base_domain`)
   - DB, cache, storage, OAuth, secrets endpoints mapped into chart values
   - Dev defaults for quick local use; disable Vault in prod or configure external auth
 - Outputs

@@ -1,5 +1,5 @@
-# AWS configuration example - using managed AWS services
-# Deploy dependencies via RDS, ElastiCache, S3, etc.
+# AWS configuration with Google OAuth (temporary workaround until Cognito support is released)
+# Uses AWS managed services but Google for authentication
 
 platform = "aws"
 
@@ -76,7 +76,7 @@ postgres = {
     engine_version    = "15.14"
     database          = "btp"
     username          = "postgres"
-    # password is set via TF_VAR_postgres_password environment variable
+    # password will be auto-generated unless TF_VAR_postgres_password is set
     skip_final_snapshot = true
     # VPC/subnet/security group IDs are auto-injected from VPC module
   }
@@ -97,16 +97,14 @@ redis = {
 object_storage = {
   mode = "aws"
   aws = {
+    bucket_name        = "btp-artifacts"
     region             = "eu-central-1"
     versioning_enabled = true
-    # bucket_name        = "custom-btp-artifacts" # Optional fixed bucket name override
-    # manage_bucket      = false                   # Uncomment to reuse an existing bucket without recreating it
     # access_key         = "AKIAXXXXX"      # Use TF_VAR_object_storage_access_key
     # secret_key         = "secret"         # Use TF_VAR_object_storage_secret_key
   }
 }
 
-# DNS automation via Route53
 dns = {
   mode                    = "aws"
   domain                  = "tf.aws.settlemint.com"
@@ -117,7 +115,7 @@ dns = {
   aws = {
     zone_name             = "aws.settlemint.com"
     main_record_type      = "CNAME"
-    main_record_value     = "aeab61c0751e141d79711e778264eff8-1760974061.eu-central-1.elb.amazonaws.com"
+    main_record_value     = "af5956009f434432e877510e78dd54f6-72030664.eu-central-1.elb.amazonaws.com"
     main_ttl              = 300
     wildcard_record_type  = "CNAME"
     wildcard_record_value = "tf.aws.settlemint.com"
@@ -139,9 +137,6 @@ ingress_tls = {
         service = {
           type = "LoadBalancer"
         }
-        config = {
-          "allow-snippet-annotations" = "true"
-        }
       }
     }
   }
@@ -158,18 +153,20 @@ metrics_logs = {
   }
 }
 
-# OAuth via AWS Cognito
+# OAuth via Google (temporary - will use Cognito once support is released)
+# IMPORTANT: You need to:
+# 1. Create a Google Cloud Project
+# 2. Enable Google+ API
+# 3. Create OAuth 2.0 credentials (Web application)
+# 4. Add authorized redirect URI: https://tf.aws.settlemint.com/api/auth/callback/google
+# 5. Set TF_VAR_oauth_client_id and TF_VAR_oauth_client_secret environment variables
 oauth = {
-  mode = "aws"
-  aws = {
-    region         = "eu-central-1"
-    user_pool_name = "btp-users"
-    client_name    = "btp-client"
-    domain_prefix  = "btp-settlemint-platform"
-    # user_pool_id   = "eu-central-1_xxxxx" # If using existing pool
-    # client_id      = "xxxxx"
-    # client_secret  = "xxxxx"
-    callback_urls = ["https://tf.aws.settlemint.com/api/auth/callback/cognito"]
+  mode = "byo" # Bring Your Own - we'll configure Google auth directly in BTP values
+  byo = {
+    # Google OAuth will be configured via BTP Helm values below
+    issuer        = null
+    client_id     = null
+    client_secret = null
   }
 }
 
@@ -188,4 +185,7 @@ btp = {
   namespace     = "settlemint"
   release_name  = "settlemint-platform"
   chart_version = "v7.32.10"
+
+  # Google OAuth is configured via external variables
+  # Variables will be injected from .env file (see below)
 }

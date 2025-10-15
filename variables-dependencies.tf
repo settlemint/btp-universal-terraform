@@ -154,18 +154,114 @@ variable "object_storage" {
   default = {}
 }
 
+variable "dns" {
+  type = object({
+    mode                    = optional(string, "byo")
+    domain                  = optional(string)
+    enable_wildcard         = optional(bool)
+    include_wildcard_in_tls = optional(bool)
+    cert_manager_issuer     = optional(string)
+    tls_secret_name         = optional(string)
+    ssl_redirect            = optional(bool)
+    annotations             = optional(map(string), {})
+    aws = optional(object({
+      zone_id           = optional(string)
+      zone_name         = optional(string)
+      main_record_type  = optional(string)
+      main_record_value = optional(string)
+      main_ttl          = optional(number)
+      alias = optional(object({
+        name                   = string
+        zone_id                = string
+        evaluate_target_health = optional(bool)
+        type                   = optional(string)
+      }))
+      wildcard_record_type  = optional(string)
+      wildcard_record_value = optional(string)
+      wildcard_ttl          = optional(number)
+      wildcard_alias = optional(object({
+        name                   = string
+        zone_id                = string
+        evaluate_target_health = optional(bool)
+        type                   = optional(string)
+      }))
+    }), null)
+    azure = optional(object({
+      resource_group_name   = string
+      zone_name             = string
+      main_record_type      = optional(string)
+      main_record_value     = string
+      main_ttl              = optional(number)
+      wildcard_record_type  = optional(string)
+      wildcard_record_value = optional(string)
+      wildcard_ttl          = optional(number)
+    }), null)
+    gcp = optional(object({
+      managed_zone          = string
+      project               = optional(string)
+      main_record_type      = optional(string)
+      main_record_value     = string
+      main_ttl              = optional(number)
+      wildcard_record_type  = optional(string)
+      wildcard_record_value = optional(string)
+      wildcard_ttl          = optional(number)
+    }), null)
+    cf = optional(object({
+      api_token             = optional(string)
+      zone_id               = optional(string)
+      zone_name             = optional(string)
+      proxied               = optional(bool)
+      main_record_type      = optional(string)
+      main_record_value     = string
+      main_ttl              = optional(number)
+      wildcard_record_type  = optional(string)
+      wildcard_record_value = optional(string)
+      wildcard_ttl          = optional(number)
+    }), null)
+    byo = optional(object({
+      ingress_annotations = optional(map(string), {})
+      tls_secret_name     = optional(string)
+      tls_hosts           = optional(list(string))
+      ssl_redirect        = optional(bool)
+    }), {})
+  })
+  default = {}
+
+  validation {
+    condition     = !(try(var.dns.mode, "byo") == "cf" && try(var.dns.cf.api_token, null) == null)
+    error_message = "When dns.mode is \"cf\", provide dns.cf.api_token (CLOUDFLARE_API_TOKEN)."
+  }
+
+  validation {
+    condition     = !(try(var.dns.mode, "byo") == "aws" && try(var.dns.aws, null) == null)
+    error_message = "When dns.mode is \"aws\", provide dns.aws configuration."
+  }
+
+  validation {
+    condition = !(
+      try(var.dns.mode, "byo") == "aws" &&
+      try(var.dns.aws, null) != null &&
+      try(var.dns.aws.zone_id, null) == null &&
+      try(var.dns.aws.zone_name, null) == null
+    )
+    error_message = "When dns.mode is \"aws\", set dns.aws.zone_id or dns.aws.zone_name."
+  }
+}
+
 variable "ingress_tls" {
   type = object({
     mode = optional(string, "k8s")
     k8s = optional(object({
-      namespace                  = optional(string)
-      nginx_chart_version        = optional(string)
-      cert_manager_chart_version = optional(string)
-      release_name_nginx         = optional(string)
-      release_name_cert_manager  = optional(string)
-      issuer_name                = optional(string)
-      values_nginx               = optional(map(any), {})
-      values_cert_manager        = optional(map(any), {})
+      namespace                       = optional(string)
+      nginx_chart_version             = optional(string)
+      cert_manager_chart_version      = optional(string)
+      release_name_nginx              = optional(string)
+      release_name_cert_manager       = optional(string)
+      issuer_name                     = optional(string)
+      values_nginx                    = optional(map(any), {})
+      values_cert_manager             = optional(map(any), {})
+      route53_credentials_secret_name = optional(string)
+      acme_email                      = optional(string)
     }), {})
   })
   default = {}

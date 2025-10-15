@@ -1,0 +1,23 @@
+# BTP Helm Chart custom values for AWS Cognito deployment
+
+# Auth configuration - using Auth0 provider for Cognito (OIDC-compatible)
+auth:
+  providers:
+    auth0:
+      enabled: true
+      clientID: "c00o3679ul2qlc0eiemevlert"
+      clientSecret: "ejco4jmmvu2v5b5cg1ec1ki7love56cbn2frejo8dn85uknoc96"
+      issuerURL: "https://cognito-idp.eu-central-1.amazonaws.com/eu-central-1_aw83HBb7j"
+
+# App-specific settings
+p6m-app:
+  livenessProbe:
+    initialDelaySeconds: 30
+    timeoutSeconds: 5
+    periodSeconds: 10
+    failureThreshold: 3
+  readinessProbe:
+    initialDelaySeconds: 30
+    timeoutSeconds: 5
+    periodSeconds: 10
+    failureThreshold: 3

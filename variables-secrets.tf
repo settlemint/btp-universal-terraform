@@ -2,6 +2,17 @@
 # All secrets must be provided via TF_VAR_* environment variables or 1Password CLI injection
 
 # Dependency credentials (REQUIRED)
+variable "postgres_password" {
+  description = "PostgreSQL password. Must be provided via TF_VAR_postgres_password. Must be 8-128 characters and cannot contain /, ', \", @, or space."
+  type        = string
+  sensitive   = true
+
+  validation {
+    condition     = length(var.postgres_password) >= 8 && length(var.postgres_password) <= 128
+    error_message = "PostgreSQL password must be between 8 and 128 characters."
+  }
+}
+
 variable "redis_password" {
   description = "Redis password (dev/prod). Must be provided via TF_VAR_redis_password."
   type        = string
@@ -129,6 +140,21 @@ variable "aws_access_key_id" {
 
 variable "aws_secret_access_key" {
   description = "AWS secret access key for cloud storage (optional)"
+  type        = string
+  default     = null
+  sensitive   = true
+}
+
+# Google OAuth (temporary - for AWS + Google auth setup)
+variable "google_oauth_client_id" {
+  description = "Google OAuth client ID (optional - for temporary Google auth on AWS)"
+  type        = string
+  default     = null
+  sensitive   = false
+}
+
+variable "google_oauth_client_secret" {
+  description = "Google OAuth client secret (optional - for temporary Google auth on AWS)"
   type        = string
   default     = null
   sensitive   = true

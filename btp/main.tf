@@ -31,16 +31,49 @@ locals {
     try(local.values_from_file.internal.authJWT.signingKey, null)
   )
 
+  dns_config              = var.dns
+  dns_tls_hosts           = var.dns != null ? var.dns.tls_hosts : null
+  dns_tls_secret_name     = var.dns != null ? var.dns.tls_secret_name : null
+  dns_ingress_annotations = var.dns != null && can(var.dns.ingress_annotations) && var.dns.ingress_annotations != null ? var.dns.ingress_annotations : {}
+  dns_ssl_redirect        = var.dns != null && can(var.dns.ssl_redirect) ? var.dns.ssl_redirect : null
+  default_ingress_host    = coalesce(var.base_domain, "settlemint.local")
+  ingress_host            = coalesce(var.dns != null ? var.dns.hostname : null, local.default_ingress_host)
+  ingress_tls_hosts       = distinct(local.dns_tls_hosts != null && length(local.dns_tls_hosts) > 0 ? local.dns_tls_hosts : [local.ingress_host])
+  ingress_tls_secret_name = coalesce(local.dns_tls_secret_name, format("%s-tls", var.release_name))
+  ingress_annotations = merge(
+    {
+      "cert-manager.io/cluster-issuer" = try(var.ingress_tls.issuer_name, "letsencrypt-prod")
+    },
+    local.dns_ssl_redirect != null ? { "nginx.ingress.kubernetes.io/ssl-redirect" = tostring(local.dns_ssl_redirect) } : {},
+    local.dns_ingress_annotations
+  )
+  ipfs_ingress_host            = format("ipfs.%s", local.ingress_host)
+  ipfs_ingress_tls_secret_name = format("%s-ipfs-cluster-tls", var.release_name)
+  deployment_engine_connection_url = (
+    try(trimspace(var.object_storage.bucket), "") != "" ?
+    format("s3://%s", trimspace(var.object_storage.bucket)) :
+    null
+  )
   # Dynamic dependency values - auto-injected from module outputs
   # These values are built from the normalized outputs of dependency modules
   # and work regardless of mode (aws/azure/gcp/k8s/byo)
   dependency_values = {
     # Ingress configuration from ingress_tls module
     ingress = {
-      enabled   = true
-      className = try(var.ingress_tls.ingress_class, "nginx")
-      annotations = {
-        "cert-manager.io/cluster-issuer" = try(var.ingress_tls.issuer_name, "letsencrypt-prod")
+      enabled     = true
+      className   = try(var.ingress_tls.ingress_class, "nginx")
+      host        = local.ingress_host
+      path        = "/"
+      pathType    = "Prefix"
+      annotations = local.ingress_annotations
+      # Enable TLS and cert-manager for automatic certificate provisioning
+      tls = length(local.ingress_tls_hosts) > 0 ? [{
+        secretName = local.ingress_tls_secret_name
+        hosts      = local.ingress_tls_hosts
+      }] : []
+      certManager = {
+        enabled = true
+        issuer  = try(var.ingress_tls.issuer_name, "letsencrypt-prod")
       }
     }
 
@@ -88,32 +121,39 @@ locals {
     # Note: Don't set support here - it's set in dev_defaults to avoid merge conflicts
   }
 
-  # OAuth configuration (conditional - only if oauth module is enabled)
-  # Note: This only adds the oidc section to auth, jwtSigningKey is added separately
-  oauth_values = var.oauth.issuer != null ? {
-    auth = {
-      oidc = {
-        enabled      = true
-        issuer       = var.oauth.issuer
-        clientId     = var.oauth.client_id
-        clientSecret = var.oauth.client_secret
-        scopes       = var.oauth.scopes
-      }
+  # OAuth provider fragments (currently Cognito + optional Google override)
+  oauth_cognito_providers = var.oauth.issuer != null ? {
+    cognito = {
+      enabled      = true
+      clientID     = var.oauth.client_id
+      clientSecret = var.oauth.client_secret
+      issuer       = var.oauth.issuer
     }
   } : {}
 
-  # JWT signing key configuration - separate from oauth to avoid merge conflicts
-  jwt_auth_values = {
-    auth = {
-      jwtSigningKey = local.jwt_signing_key
+  google_oauth_providers = var.google_oauth_client_id != null && var.google_oauth_client_secret != null ? {
+    google = {
+      enabled      = true
+      clientID     = var.google_oauth_client_id
+      clientSecret = var.google_oauth_client_secret
     }
+  } : {}
+
+  auth_providers = merge(local.oauth_cognito_providers, local.google_oauth_providers)
+
+  auth_values = {
+    auth = merge(
+      {
+        jwtSigningKey = local.jwt_signing_key
+      },
+      length(local.auth_providers) > 0 ? { providers = local.auth_providers } : {}
+    )
   }
 
   # Combine all auto-injected values
   auto_values = merge(
     local.dependency_values,
-    local.oauth_values,
-    local.jwt_auth_values
+    local.auth_values
   )
 
   license = {
@@ -161,7 +201,16 @@ locals {
 
     features = {
       deploymentEngine = {
+        # Platform hostname - controls ingress resources
+        platform = {
+          domain = {
+            hostname = local.ingress_host
+          }
+        }
         state = merge(
+          local.deployment_engine_connection_url != null ? {
+            connectionUrl = local.deployment_engine_connection_url
+          } : {},
           {
             credentials = merge(
               {
@@ -172,7 +221,7 @@ locals {
                 aws = {
                   accessKeyId     = var.aws_access_key_id
                   secretAccessKey = var.aws_secret_access_key
-                  region          = "us-east-1"
+                  region          = coalesce(var.object_storage.region, "us-east-1")
                 }
               } : {}
             )
@@ -180,34 +229,45 @@ locals {
           }
         )
         targets = [{
+          id       = "aws"
+          name     = "AWS"
+          icon     = "aws"
+          disabled = false
           clusters = [{
-            domains = {
-              service = {
-                hostname = var.base_domain != null ? var.base_domain : "example.com"
-                port     = 443
-                protocol = "https"
-              }
-            }
-            namespace = {
-              single = {
-                enabled = true
-                name    = "deployments"
-              }
-            }
+            id   = "primary"
+            name = "Primary"
+            icon = "global"
             location = {
               lat = 50.8505
               lon = 4.3488
             }
-            storage = {
-              storageClass = "local-path"
-            }
-            ingress = {
-              ingressClass = "nginx"
+            disabled = false
+            namespace = {
+              single = {
+                enabled = true
+                name    = var.deployment_namespace
+              }
             }
             connection = {
               sameCluster = {
                 enabled = true
               }
+            }
+            domains = {
+              service = {
+                tls      = true
+                hostname = local.ingress_host
+                certManager = {
+                  enabled = true
+                  issuer  = try(var.ingress_tls.issuer_name, "letsencrypt-prod")
+                }
+              }
+            }
+            storage = {
+              storageClass = "gp2"
+            }
+            ingress = {
+              ingressClass = try(var.ingress_tls.ingress_class, "nginx")
             }
             capabilities = {
               mixedLoadBalancers = true
@@ -220,9 +280,7 @@ locals {
                 }
               }
             }
-            name = "default"
           }]
-          name = "default"
         }]
       }
     }
@@ -253,6 +311,22 @@ locals {
             storageClassName = "gp2"
           }
         }
+        ingress = {
+          enabled     = true
+          className   = try(var.ingress_tls.ingress_class, "nginx")
+          annotations = local.ingress_annotations
+          hosts = [{
+            host = local.ipfs_ingress_host
+            paths = [{
+              path     = "/"
+              pathType = "Prefix"
+            }]
+          }]
+          tls = [{
+            secretName = local.ipfs_ingress_tls_secret_name
+            hosts      = [local.ipfs_ingress_host]
+          }]
+        }
       }
     }
 
@@ -262,11 +336,18 @@ locals {
       prometheus-node-exporter = {
         enabled = false
       }
-      grafana = {
-        persistence = {
-          storageClassName = "gp2"
-        }
-      }
+      grafana = merge(
+        {
+          persistence = {
+            storageClassName = "gp2"
+          }
+        },
+        var.grafana_admin_password != null ? {
+          auth = {
+            password = var.grafana_admin_password
+          }
+        } : {}
+      )
       victoria-metrics-single = {
         server = {
           persistentVolume = {
@@ -296,7 +377,23 @@ locals {
 
 resource "kubernetes_namespace" "btp" {
   count = var.create_namespace ? 1 : 0
-  metadata { name = var.namespace }
+  metadata {
+    name = var.namespace
+    labels = {
+      "kots.io/app-slug" = "settlemint-platform"
+    }
+  }
+}
+
+resource "kubernetes_namespace" "deployments" {
+  count = var.create_namespace && var.deployment_namespace != var.namespace ? 1 : 0
+
+  metadata {
+    name = var.deployment_namespace
+    labels = {
+      "kots.io/app-slug" = "settlemint-platform"
+    }
+  }
 }
 
 # Note: IPFS cluster secret is created by the Helm chart using values from ipfsCluster.clusterSecret
@@ -358,6 +455,7 @@ resource "helm_release" "btp" {
 
   depends_on = [
     kubernetes_namespace.btp,
+    kubernetes_namespace.deployments,
     null_resource.helm_registry_login,
     var.postgres,
     var.redis,

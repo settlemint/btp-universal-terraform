@@ -1,20 +1,60 @@
 # AWS mode: Deploy S3 bucket
 
+locals {
+  aws_manage_bucket       = var.mode == "aws" ? try(var.aws.manage_bucket, true) : false
+  aws_bucket_name_raw     = var.mode == "aws" ? try(var.aws.bucket_name, null) : null
+  aws_bucket_name_input   = var.mode == "aws" ? (local.aws_bucket_name_raw != null ? trimspace(local.aws_bucket_name_raw) : "") : ""
+  aws_base_domain_trimmed = var.mode == "aws" ? trimspace(try(var.base_domain, "")) : ""
+  aws_bucket_seed         = var.mode == "aws" ? (length(local.aws_base_domain_trimmed) > 0 ? local.aws_base_domain_trimmed : "btp") : ""
+  aws_should_generate_bucket = (
+    var.mode == "aws" &&
+    local.aws_manage_bucket &&
+    length(local.aws_bucket_name_input) == 0
+  )
+}
+
+resource "random_id" "aws_bucket_suffix" {
+  count       = local.aws_should_generate_bucket ? 1 : 0
+  byte_length = 4
+
+  keepers = {
+    seed = local.aws_bucket_seed
+  }
+}
+
+locals {
+  aws_bucket_suffix_generated = local.aws_should_generate_bucket ? substr(try(random_id.aws_bucket_suffix[0].hex, md5(local.aws_bucket_seed)), 0, 10) : ""
+  aws_bucket_name_effective = var.mode == "aws" ? (
+    length(local.aws_bucket_name_input) > 0 ? local.aws_bucket_name_input :
+    (local.aws_should_generate_bucket ? format("btp-%s-artifacts", local.aws_bucket_suffix_generated) : null)
+  ) : null
+  aws_identity_base = var.mode == "aws" ? (
+    local.aws_bucket_name_effective != null ?
+    replace(local.aws_bucket_name_effective, ".", "-") :
+    "btp-artifacts"
+  ) : null
+  aws_identity_key         = var.mode == "aws" ? "default" : null
+  aws_identity_user_name   = local.aws_identity_base != null ? "${local.aws_identity_base}-user" : "btp-artifacts-user"
+  aws_identity_policy_name = local.aws_identity_base != null ? "${local.aws_identity_base}-policy" : "btp-artifacts-policy"
+}
+
 # S3 bucket for object storage
 resource "aws_s3_bucket" "bucket" {
-  count  = var.mode == "aws" ? 1 : 0
-  bucket = var.aws.bucket_name
+  count  = var.mode == "aws" && local.aws_manage_bucket ? 1 : 0
+  bucket = local.aws_bucket_name_effective
 
   tags = {
-    Name        = var.aws.bucket_name
+    Name        = local.aws_bucket_name_effective
     ManagedBy   = "terraform"
     Application = "btp-object-storage"
   }
+
+  force_destroy = try(var.aws.force_destroy, true)
 }
 
 # Enable versioning if configured
 resource "aws_s3_bucket_versioning" "bucket" {
-  count  = var.mode == "aws" ? 1 : 0
+  count  = var.mode == "aws" && local.aws_manage_bucket ? 1 : 0
   bucket = aws_s3_bucket.bucket[0].id
 
   versioning_configuration {
@@ -24,7 +64,7 @@ resource "aws_s3_bucket_versioning" "bucket" {
 
 # Enable server-side encryption by default
 resource "aws_s3_bucket_server_side_encryption_configuration" "bucket" {
-  count  = var.mode == "aws" ? 1 : 0
+  count  = var.mode == "aws" && local.aws_manage_bucket ? 1 : 0
   bucket = aws_s3_bucket.bucket[0].id
 
   rule {
@@ -38,7 +78,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "bucket" {
 
 # Block public access by default (security best practice)
 resource "aws_s3_bucket_public_access_block" "bucket" {
-  count  = var.mode == "aws" && var.aws.block_public_access ? 1 : 0
+  count  = var.mode == "aws" && local.aws_manage_bucket && var.aws.block_public_access ? 1 : 0
   bucket = aws_s3_bucket.bucket[0].id
 
   block_public_acls       = true
@@ -49,7 +89,7 @@ resource "aws_s3_bucket_public_access_block" "bucket" {
 
 # Enable lifecycle rules if configured
 resource "aws_s3_bucket_lifecycle_configuration" "bucket" {
-  count  = var.mode == "aws" && var.aws.lifecycle_rules != null ? 1 : 0
+  count  = var.mode == "aws" && local.aws_manage_bucket && var.aws.lifecycle_rules != null ? 1 : 0
   bucket = aws_s3_bucket.bucket[0].id
 
   dynamic "rule" {
@@ -78,21 +118,27 @@ resource "aws_s3_bucket_lifecycle_configuration" "bucket" {
 
 # Create an IAM user for programmatic access if no access keys provided
 resource "aws_iam_user" "s3_user" {
-  count = var.mode == "aws" && var.aws.create_iam_user ? 1 : 0
-  name  = "${var.aws.bucket_name}-user"
+  for_each = var.mode == "aws" && var.aws.create_iam_user ? { (local.aws_identity_key) = true } : {}
+
+  name = local.aws_identity_user_name
 
   tags = {
-    Name        = "${var.aws.bucket_name}-user"
+    Name        = local.aws_identity_user_name
     ManagedBy   = "terraform"
     Application = "btp-object-storage"
+  }
+
+  lifecycle {
+    create_before_destroy = true
   }
 }
 
 # IAM policy for bucket access
 resource "aws_iam_user_policy" "s3_user_policy" {
-  count = var.mode == "aws" && var.aws.create_iam_user ? 1 : 0
-  name  = "${var.aws.bucket_name}-policy"
-  user  = aws_iam_user.s3_user[0].name
+  for_each = aws_iam_user.s3_user
+
+  name = local.aws_identity_policy_name
+  user = aws_iam_user.s3_user[each.key].name
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -103,7 +149,7 @@ resource "aws_iam_user_policy" "s3_user_policy" {
           "s3:ListBucket",
           "s3:GetBucketLocation"
         ]
-        Resource = aws_s3_bucket.bucket[0].arn
+        Resource = local.aws_bucket_arn
       },
       {
         Effect = "Allow"
@@ -112,7 +158,7 @@ resource "aws_iam_user_policy" "s3_user_policy" {
           "s3:PutObject",
           "s3:DeleteObject"
         ]
-        Resource = "${aws_s3_bucket.bucket[0].arn}/*"
+        Resource = "${local.aws_bucket_arn}/*"
       }
     ]
   })
@@ -120,15 +166,29 @@ resource "aws_iam_user_policy" "s3_user_policy" {
 
 # Generate access keys for the IAM user
 resource "aws_iam_access_key" "s3_user" {
-  count = var.mode == "aws" && var.aws.create_iam_user ? 1 : 0
-  user  = aws_iam_user.s3_user[0].name
+  for_each = aws_iam_user.s3_user
+
+  user = aws_iam_user.s3_user[each.key].name
+}
+
+data "aws_s3_bucket" "existing" {
+  count  = var.mode == "aws" && !local.aws_manage_bucket ? 1 : 0
+  bucket = local.aws_bucket_name_effective
 }
 
 locals {
+  aws_bucket_id = var.mode == "aws" ? (
+    local.aws_manage_bucket ? aws_s3_bucket.bucket[0].id : data.aws_s3_bucket.existing[0].id
+  ) : null
+
+  aws_bucket_arn = var.mode == "aws" ? (
+    local.aws_manage_bucket ? aws_s3_bucket.bucket[0].arn : data.aws_s3_bucket.existing[0].arn
+  ) : null
+
   aws_endpoint       = var.mode == "aws" ? "https://s3.${var.aws.region}.amazonaws.com" : null
-  aws_bucket         = var.mode == "aws" ? aws_s3_bucket.bucket[0].id : null
-  aws_access_key     = var.mode == "aws" ? (var.aws.create_iam_user ? aws_iam_access_key.s3_user[0].id : var.aws.access_key) : null
-  aws_secret_key     = var.mode == "aws" ? (var.aws.create_iam_user ? aws_iam_access_key.s3_user[0].secret : var.aws.secret_key) : null
+  aws_bucket         = var.mode == "aws" ? local.aws_bucket_id : null
+  aws_access_key     = var.mode == "aws" ? (var.aws.create_iam_user ? try(aws_iam_access_key.s3_user[local.aws_identity_key].id, null) : var.aws.access_key) : null
+  aws_secret_key     = var.mode == "aws" ? (var.aws.create_iam_user ? try(aws_iam_access_key.s3_user[local.aws_identity_key].secret, null) : var.aws.secret_key) : null
   aws_region         = var.mode == "aws" ? var.aws.region : null
   aws_use_path_style = var.mode == "aws" ? false : null
 }
