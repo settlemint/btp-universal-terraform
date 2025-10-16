@@ -13,27 +13,27 @@ graph TB
         MODE_SELECTION[Mode Selection]
         
         subgraph "Deployment Modes"
-            K8S_MODE[<img src='assets/icons/k8s/kubernetes.svg' width='20'/> Kubernetes Mode]
-            AWS_MODE[<img src='assets/icons/aws/rds.svg' width='20'/> AWS RDS Mode]
-            AZURE_MODE[<img src='assets/icons/azure/postgresql.svg' width='20'/> Azure Database Mode]
-            GCP_MODE[<img src='assets/icons/gcp/cloud-sql.svg' width='20'/> GCP Cloud SQL Mode]
-            BYO_MODE[<img src='assets/icons/database/external.svg' width='20'/> BYO Mode]
+            K8S_MODE[<img src="assets/icons/k8s/kubernetes.svg" width="20"/> Kubernetes Mode]
+            AWS_MODE[<img src="assets/icons/aws/rds.svg" width="20"/> AWS RDS Mode]
+            AZURE_MODE[<img src="assets/icons/azure/postgresql.svg" width="20"/> Azure Database Mode]
+            GCP_MODE[<img src="assets/icons/gcp/cloud-sql.svg" width="20"/> GCP Cloud SQL Mode]
+            BYO_MODE[<img src="assets/icons/database/external.svg" width="20"/> BYO Mode]
         end
         
         subgraph "Kubernetes Mode Components"
-            ZALANDO_OP[<img src='assets/icons/k8s/operator.svg' width='20'/> Zalando Postgres Operator]
-            POSTGRES_CLUSTER[<img src='assets/icons/database/postgresql.svg' width='20'/> PostgreSQL Cluster]
-            BACKUP_CRON[<img src='assets/icons/database/backup.svg' width='20'/> Backup CronJob]
+            ZALANDO_OP[<img src="assets/icons/k8s/operator.svg" width="20"/> Zalando Postgres Operator]
+            POSTGRES_CLUSTER[<img src="assets/icons/database/postgresql.svg" width="20"/> PostgreSQL Cluster]
+            BACKUP_CRON[<img src="assets/icons/database/backup.svg" width="20"/> Backup CronJob]
         end
         
         subgraph "Managed Mode Components"
-            RDS_INSTANCE[<img src='assets/icons/aws/rds.svg' width='20'/> RDS Instance]
-            AZURE_SERVER[<img src='assets/icons/azure/postgresql.svg' width='20'/> Azure Database Server]
-            CLOUD_SQL_INSTANCE[<img src='assets/icons/gcp/cloud-sql.svg' width='20'/> Cloud SQL Instance]
+            RDS_INSTANCE[<img src="assets/icons/aws/rds.svg" width="20"/> RDS Instance]
+            AZURE_SERVER[<img src="assets/icons/azure/postgresql.svg" width="20"/> Azure Database Server]
+            CLOUD_SQL_INSTANCE[<img src="assets/icons/gcp/cloud-sql.svg" width="20"/> Cloud SQL Instance]
         end
         
         subgraph "Output Normalization"
-            NORMALIZED[<img src='assets/icons/tools/normalize.svg' width='20'/> Normalized Outputs]
+            NORMALIZED[<img src="assets/icons/tools/normalize.svg" width="20"/> Normalized Outputs]
             CONNECTION_STRING[Connection String]
             HOST[Host]
             PORT[Port]

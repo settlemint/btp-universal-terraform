@@ -2086,8 +2086,6 @@ spec:
 
 - [FAQ](24-faq.md) - Frequently asked questions
 - [Contributing](25-contributing.md) - Contributing guidelines
-- [Changelog](26-changelog.md) - Version history
-- [Support](27-support.md) - Getting help
 
 ---
 

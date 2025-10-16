@@ -13,27 +13,27 @@ graph TB
         MODE_SELECTION[Mode Selection]
         
         subgraph "Deployment Modes"
-            K8S_MODE[<img src='assets/icons/k8s/kubernetes.svg' width='20'/> Kubernetes Mode]
-            AWS_MODE[<img src='assets/icons/aws/elasticache.svg' width='20'/> AWS ElastiCache Mode]
-            AZURE_MODE[<img src='assets/icons/azure/redis-cache.svg' width='20'/> Azure Cache Mode]
-            GCP_MODE[<img src='assets/icons/gcp/memorystore.svg' width='20'/> GCP Memorystore Mode]
-            BYO_MODE[<img src='assets/icons/database/external.svg' width='20'/> BYO Mode]
+            K8S_MODE[<img src="assets/icons/k8s/kubernetes.svg" width="20"/> Kubernetes Mode]
+            AWS_MODE[<img src="assets/icons/aws/elasticache.svg" width="20"/> AWS ElastiCache Mode]
+            AZURE_MODE[<img src="assets/icons/azure/redis-cache.svg" width="20"/> Azure Cache Mode]
+            GCP_MODE[<img src="assets/icons/gcp/memorystore.svg" width="20"/> GCP Memorystore Mode]
+            BYO_MODE[<img src="assets/icons/database/external.svg" width="20"/> BYO Mode]
         end
         
         subgraph "Kubernetes Mode Components"
-            REDIS_HELM[<img src='assets/icons/k8s/helm.svg' width='20'/> Redis Helm Chart]
-            REDIS_CLUSTER[<img src='assets/icons/database/redis-cluster.svg' width='20'/> Redis Cluster]
-            SENTINEL[<img src='assets/icons/database/redis-sentinel.svg' width='20'/> Redis Sentinel]
+            REDIS_HELM[<img src="assets/icons/k8s/helm.svg" width="20"/> Redis Helm Chart]
+            REDIS_CLUSTER[<img src="assets/icons/database/redis-cluster.svg" width="20"/> Redis Cluster]
+            SENTINEL[<img src="assets/icons/database/redis-sentinel.svg" width="20"/> Redis Sentinel]
         end
         
         subgraph "Managed Mode Components"
-            ELASTICACHE[<img src='assets/icons/aws/elasticache.svg' width='20'/> ElastiCache]
-            AZURE_CACHE[<img src='assets/icons/azure/redis-cache.svg' width='20'/> Azure Cache]
-            MEMORYSTORE[<img src='assets/icons/gcp/memorystore.svg' width='20'/> Memorystore]
+            ELASTICACHE[<img src="assets/icons/aws/elasticache.svg" width="20"/> ElastiCache]
+            AZURE_CACHE[<img src="assets/icons/azure/redis-cache.svg" width="20"/> Azure Cache]
+            MEMORYSTORE[<img src="assets/icons/gcp/memorystore.svg" width="20"/> Memorystore]
         end
         
         subgraph "Output Normalization"
-            NORMALIZED[<img src='assets/icons/tools/normalize.svg' width='20'/> Normalized Outputs]
+            NORMALIZED[<img src="assets/icons/tools/normalize.svg" width="20"/> Normalized Outputs]
             HOST[Host]
             PORT[Port]
             PASSWORD[Password]

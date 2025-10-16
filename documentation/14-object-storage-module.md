@@ -13,27 +13,27 @@ graph TB
         MODE_SELECTION[Mode Selection]
         
         subgraph "Deployment Modes"
-            K8S_MODE[<img src='assets/icons/k8s/kubernetes.svg' width='20'/> Kubernetes Mode]
-            AWS_MODE[<img src='assets/icons/aws/s3.svg' width='20'/> AWS S3 Mode]
-            AZURE_MODE[<img src='assets/icons/azure/storage.svg' width='20'/> Azure Blob Mode]
-            GCP_MODE[<img src='assets/icons/gcp/cloud-storage.svg' width='20'/> GCP Cloud Storage Mode]
-            BYO_MODE[<img src='assets/icons/storage/external.svg' width='20'/> BYO Mode]
+            K8S_MODE[<img src="assets/icons/k8s/kubernetes.svg" width="20"/> Kubernetes Mode]
+            AWS_MODE[<img src="assets/icons/aws/s3.svg" width="20"/> AWS S3 Mode]
+            AZURE_MODE[<img src="assets/icons/azure/storage.svg" width="20"/> Azure Blob Mode]
+            GCP_MODE[<img src="assets/icons/gcp/cloud-storage.svg" width="20"/> GCP Cloud Storage Mode]
+            BYO_MODE[<img src="assets/icons/storage/external.svg" width="20"/> BYO Mode]
         end
         
         subgraph "Kubernetes Mode Components"
-            MINIO_HELM[<img src='assets/icons/k8s/helm.svg' width='20'/> MinIO Helm Chart]
-            MINIO_CLUSTER[<img src='assets/icons/storage/minio.svg' width='20'/> MinIO Cluster]
-            CONSOLE[<img src='assets/icons/storage/console.svg' width='20'/> MinIO Console]
+            MINIO_HELM[<img src="assets/icons/k8s/helm.svg" width="20"/> MinIO Helm Chart]
+            MINIO_CLUSTER[<img src="assets/icons/storage/minio.svg" width="20"/> MinIO Cluster]
+            CONSOLE[<img src="assets/icons/storage/console.svg" width="20"/> MinIO Console]
         end
         
         subgraph "Managed Mode Components"
-            S3_BUCKET[<img src='assets/icons/aws/s3.svg' width='20'/> S3 Bucket]
-            BLOB_CONTAINER[<img src='assets/icons/azure/storage.svg' width='20'/> Blob Container]
-            GCS_BUCKET[<img src='assets/icons/gcp/cloud-storage.svg' width='20'/> GCS Bucket]
+            S3_BUCKET[<img src="assets/icons/aws/s3.svg" width="20"/> S3 Bucket]
+            BLOB_CONTAINER[<img src="assets/icons/azure/storage.svg" width="20"/> Blob Container]
+            GCS_BUCKET[<img src="assets/icons/gcp/cloud-storage.svg" width="20"/> GCS Bucket]
         end
         
         subgraph "Output Normalization"
-            NORMALIZED[<img src='assets/icons/tools/normalize.svg' width='20'/> Normalized Outputs]
+            NORMALIZED[<img src="assets/icons/tools/normalize.svg" width="20"/> Normalized Outputs]
             ENDPOINT[Endpoint]
             BUCKET[Bucket]
             ACCESS_KEY[Access Key]

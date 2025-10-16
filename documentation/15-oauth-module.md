@@ -13,27 +13,27 @@ graph TB
         MODE_SELECTION[Mode Selection]
         
         subgraph "Deployment Modes"
-            K8S_MODE[<img src='assets/icons/k8s/kubernetes.svg' width='20'/> Kubernetes Mode]
-            AWS_MODE[<img src='assets/icons/aws/cognito.svg' width='20'/> AWS Cognito Mode]
-            AZURE_MODE[<img src='assets/icons/azure/active-directory.svg' width='20'/> Azure AD Mode]
-            GCP_MODE[<img src='assets/icons/gcp/identity-platform.svg' width='20'/> GCP Identity Mode]
-            BYO_MODE[<img src='assets/icons/auth/external.svg' width='20'/> BYO Mode]
+            K8S_MODE[<img src="assets/icons/k8s/kubernetes.svg" width="20"/> Kubernetes Mode]
+            AWS_MODE[<img src="assets/icons/aws/cognito.svg" width="20"/> AWS Cognito Mode]
+            AZURE_MODE[<img src="assets/icons/azure/active-directory.svg" width="20"/> Azure AD Mode]
+            GCP_MODE[<img src="assets/icons/gcp/identity-platform.svg" width="20"/> GCP Identity Mode]
+            BYO_MODE[<img src="assets/icons/auth/external.svg" width="20"/> BYO Mode]
         end
         
         subgraph "Kubernetes Mode Components"
-            KEYCLOAK_HELM[<img src='assets/icons/k8s/helm.svg' width='20'/> Keycloak Helm Chart]
-            KEYCLOAK_REALM[<img src='assets/icons/auth/keycloak.svg' width='20'/> Keycloak Realm]
-            POSTGRES_DB[<img src='assets/icons/database/postgresql.svg' width='20'/> PostgreSQL DB]
+            KEYCLOAK_HELM[<img src="assets/icons/k8s/helm.svg" width="20"/> Keycloak Helm Chart]
+            KEYCLOAK_REALM[<img src="assets/icons/auth/keycloak.svg" width="20"/> Keycloak Realm]
+            POSTGRES_DB[<img src="assets/icons/database/postgresql.svg" width="20"/> PostgreSQL DB]
         end
         
         subgraph "Managed Mode Components"
-            COGNITO_USER_POOL[<img src='assets/icons/aws/cognito.svg' width='20'/> Cognito User Pool]
-            AZURE_AD_B2C[<img src='assets/icons/azure/active-directory.svg' width='20'/> Azure AD B2C]
-            GCP_IDENTITY[<img src='assets/icons/gcp/identity-platform.svg' width='20'/> Identity Platform]
+            COGNITO_USER_POOL[<img src="assets/icons/aws/cognito.svg" width="20"/> Cognito User Pool]
+            AZURE_AD_B2C[<img src="assets/icons/azure/active-directory.svg" width="20"/> Azure AD B2C]
+            GCP_IDENTITY[<img src="assets/icons/gcp/identity-platform.svg" width="20"/> Identity Platform]
         end
         
         subgraph "Output Normalization"
-            NORMALIZED[<img src='assets/icons/tools/normalize.svg' width='20'/> Normalized Outputs]
+            NORMALIZED[<img src="assets/icons/tools/normalize.svg" width="20"/> Normalized Outputs]
             ISSUER_URL[Issuer URL]
             CLIENT_ID[Client ID]
             CLIENT_SECRET[Client Secret]

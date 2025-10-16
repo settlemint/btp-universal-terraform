@@ -12,46 +12,46 @@ graph TB
     subgraph "AWS Account"
         subgraph "VPC (10.0.0.0/16)"
             subgraph "Public Subnets"
-                LB[<img src='assets/icons/aws/elb.svg' width='20'/> Application Load Balancer]
-                NAT[<img src='assets/icons/aws/nat.svg' width='20'/> NAT Gateway]
+                LB[<img src="assets/icons/aws/elb.svg" width="20"/> Application Load Balancer]
+                NAT[<img src="assets/icons/aws/nat.svg" width="20"/> NAT Gateway]
             end
             
             subgraph "Private Subnets"
-                EKS[<img src='assets/icons/aws/eks.svg' width='20'/> EKS Cluster]
-                RDS[<img src='assets/icons/aws/rds.svg' width='20'/> RDS PostgreSQL]
-                REDIS[<img src='assets/icons/aws/elasticache.svg' width='20'/> ElastiCache Redis]
+                EKS[<img src="assets/icons/aws/eks.svg" width="20"/> EKS Cluster]
+                RDS[<img src="assets/icons/aws/rds.svg" width="20"/> RDS PostgreSQL]
+                REDIS[<img src="assets/icons/aws/elasticache.svg" width="20"/> ElastiCache Redis]
             end
             
             subgraph "Storage"
-                S3[<img src='assets/icons/aws/s3.svg' width='20'/> S3 Bucket]
-                EBS[<img src='assets/icons/aws/ebs.svg' width='20'/> EBS Volumes]
+                S3[<img src="assets/icons/aws/s3.svg" width="20"/> S3 Bucket]
+                EBS[<img src="assets/icons/aws/ebs.svg" width="20"/> EBS Volumes]
             end
             
             subgraph "Security & Identity"
-                COGNITO[<img src='assets/icons/aws/cognito.svg' width='20'/> Cognito User Pool]
-                SECRETS[<img src='assets/icons/aws/secrets-manager.svg' width='20'/> Secrets Manager]
-                IAM[<img src='assets/icons/aws/iam.svg' width='20'/> IAM Roles]
+                COGNITO[<img src="assets/icons/aws/cognito.svg" width="20"/> Cognito User Pool]
+                SECRETS[<img src="assets/icons/aws/secrets-manager.svg" width="20"/> Secrets Manager]
+                IAM[<img src="assets/icons/aws/iam.svg" width="20"/> IAM Roles]
             end
         end
         
         subgraph "DNS & Certificates"
-            R53[<img src='assets/icons/aws/route53.svg' width='20'/> Route53]
-            ACM[<img src='assets/icons/aws/acm.svg' width='20'/> Certificate Manager]
+            R53[<img src="assets/icons/aws/route53.svg" width="20"/> Route53]
+            ACM[<img src="assets/icons/aws/acm.svg" width="20"/> Certificate Manager]
         end
     end
     
     subgraph "Kubernetes Cluster (EKS)"
         subgraph "btp-deps namespace"
-            NGINX[<img src='assets/icons/k8s/nginx.svg' width='20'/> nginx Ingress]
-            CERT[<img src='assets/icons/k8s/cert-manager.svg' width='20'/> cert-manager]
-            PROM[<img src='assets/icons/k8s/prometheus.svg' width='20'/> Prometheus]
-            GRAFANA[<img src='assets/icons/k8s/grafana.svg' width='20'/> Grafana]
-            LOKI[<img src='assets/icons/k8s/loki.svg' width='20'/> Loki]
-            VAULT[<img src='assets/icons/k8s/vault.svg' width='20'/> Vault]
+            NGINX[<img src="assets/icons/k8s/nginx.svg" width="20"/> nginx Ingress]
+            CERT[<img src="assets/icons/k8s/cert-manager.svg" width="20"/> cert-manager]
+            PROM[<img src="assets/icons/k8s/prometheus.svg" width="20"/> Prometheus]
+            GRAFANA[<img src="assets/icons/k8s/grafana.svg" width="20"/> Grafana]
+            LOKI[<img src="assets/icons/k8s/loki.svg" width="20"/> Loki]
+            VAULT[<img src="assets/icons/k8s/vault.svg" width="20"/> Vault]
         end
         
         subgraph "settlemint namespace"
-            BTP[<img src='assets/icons/btp/settlemint.svg' width='20'/> SettleMint Platform]
+            BTP[<img src="assets/icons/btp/settlemint.svg" width="20"/> SettleMint Platform]
         end
     end
     
@@ -657,10 +657,10 @@ aws elasticache describe-events --source-identifier btp-redis
 
 ## Next Steps
 
-- [Security Best Practices](21-security.md) - Secure your AWS deployment
+- [Security Best Practices](19-security.md) - Secure your AWS deployment
 - [Operations Guide](18-operations.md) - Day-to-day operations
 - [Monitoring Setup](17-observability-module.md) - Comprehensive monitoring
-- [Backup Strategies](20-maintenance.md) - Backup and recovery procedures
+- [Backup Strategies](20-troubleshooting.md) - Backup and recovery procedures
 
 ---
 

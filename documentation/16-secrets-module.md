@@ -13,27 +13,27 @@ graph TB
         MODE_SELECTION[Mode Selection]
         
         subgraph "Deployment Modes"
-            K8S_MODE[<img src='assets/icons/k8s/kubernetes.svg' width='20'/> Kubernetes Mode]
-            AWS_MODE[<img src='assets/icons/aws/secrets-manager.svg' width='20'/> AWS Secrets Mode]
-            AZURE_MODE[<img src='assets/icons/azure/key-vault.svg' width='20'/> Azure Key Vault Mode]
-            GCP_MODE[<img src='assets/icons/gcp/secret-manager.svg' width='20'/> GCP Secret Mode]
-            BYO_MODE[<img src='assets/icons/security/external.svg' width='20'/> BYO Mode]
+            K8S_MODE[<img src="assets/icons/k8s/kubernetes.svg" width="20"/> Kubernetes Mode]
+            AWS_MODE[<img src="assets/icons/aws/secrets-manager.svg" width="20"/> AWS Secrets Mode]
+            AZURE_MODE[<img src="assets/icons/azure/key-vault.svg" width="20"/> Azure Key Vault Mode]
+            GCP_MODE[<img src="assets/icons/gcp/secret-manager.svg" width="20"/> GCP Secret Mode]
+            BYO_MODE[<img src="assets/icons/security/external.svg" width="20"/> BYO Mode]
         end
         
         subgraph "Kubernetes Mode Components"
-            VAULT_HELM[<img src='assets/icons/k8s/helm.svg' width='20'/> Vault Helm Chart]
-            VAULT_CLUSTER[<img src='assets/icons/security/vault.svg' width='20'/> Vault Cluster]
-            CONSUL_BACKEND[<img src='assets/icons/database/consul.svg' width='20'/> Consul Backend]
+            VAULT_HELM[<img src="assets/icons/k8s/helm.svg" width="20"/> Vault Helm Chart]
+            VAULT_CLUSTER[<img src="assets/icons/security/vault.svg" width="20"/> Vault Cluster]
+            CONSUL_BACKEND[<img src="assets/icons/database/consul.svg" width="20"/> Consul Backend]
         end
         
         subgraph "Managed Mode Components"
-            SECRETS_MANAGER[<img src='assets/icons/aws/secrets-manager.svg' width='20'/> Secrets Manager]
-            KEY_VAULT[<img src='assets/icons/azure/key-vault.svg' width='20'/> Key Vault]
-            SECRET_MANAGER[<img src='assets/icons/gcp/secret-manager.svg' width='20'/> Secret Manager]
+            SECRETS_MANAGER[<img src="assets/icons/aws/secrets-manager.svg" width="20"/> Secrets Manager]
+            KEY_VAULT[<img src="assets/icons/azure/key-vault.svg" width="20"/> Key Vault]
+            SECRET_MANAGER[<img src="assets/icons/gcp/secret-manager.svg" width="20"/> Secret Manager]
         end
         
         subgraph "Output Normalization"
-            NORMALIZED[<img src='assets/icons/tools/normalize.svg' width='20'/> Normalized Outputs]
+            NORMALIZED[<img src="assets/icons/tools/normalize.svg" width="20"/> Normalized Outputs]
             ENDPOINT[Endpoint]
             TOKEN[Token]
             NAMESPACE[Namespace]

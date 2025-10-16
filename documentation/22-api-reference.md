@@ -2200,7 +2200,6 @@ SLACK_WEBHOOK_URL="https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK"
 - [Examples](23-examples.md) - Configuration examples
 - [FAQ](24-faq.md) - Frequently asked questions
 - [Contributing](25-contributing.md) - Contributing guidelines
-- [Changelog](26-changelog.md) - Version history
 
 ---
 

@@ -219,7 +219,6 @@ For production deployment, see:
 - [AWS Deployment Guide](05-aws-deployment.md)
 - [Azure Deployment Guide](06-azure-deployment.md)
 - [GCP Deployment Guide](07-gcp-deployment.md)
-- [Production Deployment Guide](22-production-deployment.md)
 
 ## Platform-Specific Quick Starts
 
@@ -299,9 +298,9 @@ If you encounter issues:
 ## Next Steps
 
 - [Architecture Overview](09-architecture-overview.md) - Understand the system design
-- [Configuration Reference](24-configuration-reference.md) - Customize your deployment
+- [Configuration Reference](22-api-reference.md) - Customize your deployment
 - [Operations Guide](18-operations.md) - Day-to-day operations
-- [Security Best Practices](21-security.md) - Secure your deployment
+- [Security Best Practices](19-security.md) - Secure your deployment
 
 ---
 

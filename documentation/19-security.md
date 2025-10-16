@@ -26,37 +26,37 @@ This guide provides comprehensive security best practices, procedures, and confi
 graph TB
     subgraph "Security Layers"
         subgraph "External Security"
-            WAF[<img src='assets/icons/security/waf.svg' width='20'/> Web Application Firewall]
-            CDN[<img src='assets/icons/security/cdn.svg' width='20'/> CDN/DDoS Protection]
-            LB[<img src='assets/icons/security/load-balancer.svg' width='20'/> Load Balancer]
+            WAF[<img src="assets/icons/security/waf.svg" width="20"/> Web Application Firewall]
+            CDN[<img src="assets/icons/security/cdn.svg" width="20"/> CDN/DDoS Protection]
+            LB[<img src="assets/icons/security/load-balancer.svg" width="20"/> Load Balancer]
         end
         
         subgraph "Network Security"
-            VPC[<img src='assets/icons/network/vpc.svg' width='20'/> VPC/Network Isolation]
-            SG[<img src='assets/icons/security/security-group.svg' width='20'/> Security Groups]
-            NP[<img src='assets/icons/security/network-policy.svg' width='20'/> Network Policies]
-            FW[<img src='assets/icons/security/firewall.svg' width='20'/> Firewall Rules]
+            VPC[<img src="assets/icons/network/vpc.svg" width="20"/> VPC/Network Isolation]
+            SG[<img src="assets/icons/security/security-group.svg" width="20"/> Security Groups]
+            NP[<img src="assets/icons/security/network-policy.svg" width="20"/> Network Policies]
+            FW[<img src="assets/icons/security/firewall.svg" width="20"/> Firewall Rules]
         end
         
         subgraph "Application Security"
-            TLS[<img src='assets/icons/security/tls.svg' width='20'/> TLS Encryption]
-            AUTH[<img src='assets/icons/security/authentication.svg' width='20'/> Authentication]
-            AUTHZ[<img src='assets/icons/security/authorization.svg' width='20'/> Authorization]
-            API[<img src='assets/icons/security/api-security.svg' width='20'/> API Security]
+            TLS[<img src="assets/icons/security/tls.svg" width="20"/> TLS Encryption]
+            AUTH[<img src="assets/icons/security/authentication.svg" width="20"/> Authentication]
+            AUTHZ[<img src="assets/icons/security/authorization.svg" width="20"/> Authorization]
+            API[<img src="assets/icons/security/api-security.svg" width="20"/> API Security]
         end
         
         subgraph "Data Security"
-            ENCRYPT[<img src='assets/icons/security/encryption.svg' width='20'/> Data Encryption]
-            SECRETS[<img src='assets/icons/security/secrets.svg' width='20'/> Secrets Management]
-            BACKUP[<img src='assets/icons/security/backup.svg' width='20'/> Secure Backup]
-            AUDIT[<img src='assets/icons/security/audit.svg' width='20'/> Audit Logging]
+            ENCRYPT[<img src="assets/icons/security/encryption.svg" width="20"/> Data Encryption]
+            SECRETS[<img src="assets/icons/security/secrets.svg" width="20"/> Secrets Management]
+            BACKUP[<img src="assets/icons/security/backup.svg" width="20"/> Secure Backup]
+            AUDIT[<img src="assets/icons/security/audit.svg" width="20"/> Audit Logging]
         end
         
         subgraph "Infrastructure Security"
-            CONTAINER[<img src='assets/icons/security/container.svg' width='20'/> Container Security]
-            OS[<img src='assets/icons/security/os.svg' width='20'/> OS Hardening]
-            RUNTIME[<img src='assets/icons/security/runtime.svg' width='20'/> Runtime Security]
-            SCAN[<img src='assets/icons/security/scanning.svg' width='20'/> Vulnerability Scanning]
+            CONTAINER[<img src="assets/icons/security/container.svg" width="20"/> Container Security]
+            OS[<img src="assets/icons/security/os.svg" width="20"/> OS Hardening]
+            RUNTIME[<img src="assets/icons/security/runtime.svg" width="20"/> Runtime Security]
+            SCAN[<img src="assets/icons/security/scanning.svg" width="20"/> Vulnerability Scanning]
         end
     end
     

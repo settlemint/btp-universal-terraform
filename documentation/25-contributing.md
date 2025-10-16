@@ -733,9 +733,7 @@ make clean
 
 ## Next Steps
 
-- [Changelog](26-changelog.md) - Version history
-- [Support](27-support.md) - Getting help
-- [Community](28-community.md) - Community resources
+- [FAQ](24-faq.md) - Frequently asked questions
 - [License](LICENSE) - Project license
 
 ---

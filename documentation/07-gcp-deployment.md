@@ -12,46 +12,46 @@ graph TB
     subgraph "GCP Project"
         subgraph "VPC Network (btp-vpc)"
             subgraph "Public Subnets"
-                LB[<img src='assets/icons/gcp/load-balancer.svg' width='20'/> Global Load Balancer]
-                NAT[<img src='assets/icons/gcp/cloud-nat.svg' width='20'/> Cloud NAT]
+                LB[<img src="assets/icons/gcp/load-balancer.svg" width="20"/> Global Load Balancer]
+                NAT[<img src="assets/icons/gcp/cloud-nat.svg" width="20"/> Cloud NAT]
             end
             
             subgraph "Private Subnets"
-                GKE[<img src='assets/icons/gcp/gke.svg' width='20'/> GKE Cluster]
-                CLOUDSQL[<img src='assets/icons/gcp/cloud-sql.svg' width='20'/> Cloud SQL PostgreSQL]
-                MEMORYSTORE[<img src='assets/icons/gcp/memorystore.svg' width='20'/> Memorystore Redis]
+                GKE[<img src="assets/icons/gcp/gke.svg" width="20"/> GKE Cluster]
+                CLOUDSQL[<img src="assets/icons/gcp/cloud-sql.svg" width="20"/> Cloud SQL PostgreSQL]
+                MEMORYSTORE[<img src="assets/icons/gcp/memorystore.svg" width="20"/> Memorystore Redis]
             end
             
             subgraph "Storage"
-                GCS[<img src='assets/icons/gcp/cloud-storage.svg' width='20'/> Cloud Storage]
-                PERSISTENT[<img src='assets/icons/gcp/persistent-disk.svg' width='20'/> Persistent Disks]
+                GCS[<img src="assets/icons/gcp/cloud-storage.svg" width="20"/> Cloud Storage]
+                PERSISTENT[<img src="assets/icons/gcp/persistent-disk.svg" width="20"/> Persistent Disks]
             end
             
             subgraph "Identity & Security"
-                IDENTITY[<img src='assets/icons/gcp/identity-platform.svg' width='20'/> Identity Platform]
-                SECRETMANAGER[<img src='assets/icons/gcp/secret-manager.svg' width='20'/> Secret Manager]
-                IAM[<img src='assets/icons/gcp/iam.svg' width='20'/> IAM]
+                IDENTITY[<img src="assets/icons/gcp/identity-platform.svg" width="20"/> Identity Platform]
+                SECRETMANAGER[<img src="assets/icons/gcp/secret-manager.svg" width="20"/> Secret Manager]
+                IAM[<img src="assets/icons/gcp/iam.svg" width="20"/> IAM]
             end
         end
         
         subgraph "DNS & Certificates"
-            DNS[<img src='assets/icons/gcp/cloud-dns.svg' width='20'/> Cloud DNS]
-            SSL[<img src='assets/icons/gcp/ssl-certificate.svg' width='20'/> SSL Certificates]
+            DNS[<img src="assets/icons/gcp/cloud-dns.svg" width="20"/> Cloud DNS]
+            SSL[<img src="assets/icons/gcp/ssl-certificate.svg" width="20"/> SSL Certificates]
         end
     end
     
     subgraph "Kubernetes Cluster (GKE)"
         subgraph "btp-deps namespace"
-            NGINX[<img src='assets/icons/k8s/nginx.svg' width='20'/> nginx Ingress]
-            CERT[<img src='assets/icons/k8s/cert-manager.svg' width='20'/> cert-manager]
-            PROM[<img src='assets/icons/k8s/prometheus.svg' width='20'/> Prometheus]
-            GRAFANA[<img src='assets/icons/k8s/grafana.svg' width='20'/> Grafana]
-            LOKI[<img src='assets/icons/k8s/loki.svg' width='20'/> Loki]
-            VAULT[<img src='assets/icons/k8s/vault.svg' width='20'/> Vault]
+            NGINX[<img src="assets/icons/k8s/nginx.svg" width="20"/> nginx Ingress]
+            CERT[<img src="assets/icons/k8s/cert-manager.svg" width="20"/> cert-manager]
+            PROM[<img src="assets/icons/k8s/prometheus.svg" width="20"/> Prometheus]
+            GRAFANA[<img src="assets/icons/k8s/grafana.svg" width="20"/> Grafana]
+            LOKI[<img src="assets/icons/k8s/loki.svg" width="20"/> Loki]
+            VAULT[<img src="assets/icons/k8s/vault.svg" width="20"/> Vault]
         end
         
         subgraph "settlemint namespace"
-            BTP[<img src='assets/icons/btp/settlemint.svg' width='20'/> SettleMint Platform]
+            BTP[<img src="assets/icons/btp/settlemint.svg" width="20"/> SettleMint Platform]
         end
     end
     
@@ -866,10 +866,10 @@ gcloud redis instances describe btp-redis --region=us-central1
 
 ## Next Steps
 
-- [Security Best Practices](21-security.md) - Secure your GCP deployment
+- [Security Best Practices](19-security.md) - Secure your GCP deployment
 - [Operations Guide](18-operations.md) - Day-to-day operations
 - [Monitoring Setup](17-observability-module.md) - Comprehensive monitoring
-- [Backup Strategies](20-maintenance.md) - Backup and recovery procedures
+- [Backup Strategies](20-troubleshooting.md) - Backup and recovery procedures
 
 ---
 

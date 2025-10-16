@@ -858,9 +858,6 @@ kubectl get networkpolicies -A
 ## Next Steps
 
 - [Contributing](25-contributing.md) - Contributing guidelines
-- [Changelog](26-changelog.md) - Version history
-- [Support](27-support.md) - Getting help
-- [Community](28-community.md) - Community resources
 
 ---
 

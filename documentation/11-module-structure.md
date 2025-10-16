@@ -39,27 +39,27 @@ btp-universal-terraform/
 %%{init: {'theme':'neutral','securityLevel':'loose','flowchart':{'htmlLabels':true,'curve':'basis'}}}%%
 graph TB
     subgraph "Root Module"
-        ROOT[<img src='assets/icons/tools/terraform.svg' width='20'/> Root Module]
+        ROOT[<img src="assets/icons/tools/terraform.svg" width="20"/> Root Module]
     end
     
     subgraph "Infrastructure Modules"
-        VPC[<img src='assets/icons/infrastructure/vpc.svg' width='20'/> VPC Module]
-        K8S_CLUSTER[<img src='assets/icons/k8s/cluster.svg' width='20'/> K8s Cluster Module]
-        DNS[<img src='assets/icons/infrastructure/dns.svg' width='20'/> DNS Module]
+        VPC[<img src="assets/icons/infrastructure/vpc.svg" width="20"/> VPC Module]
+        K8S_CLUSTER[<img src="assets/icons/k8s/cluster.svg" width="20"/> K8s Cluster Module]
+        DNS[<img src="assets/icons/infrastructure/dns.svg" width="20"/> DNS Module]
     end
     
     subgraph "Dependency Modules"
-        PG[<img src='assets/icons/database/postgresql.svg' width='20'/> PostgreSQL Module]
-        REDIS[<img src='assets/icons/database/redis.svg' width='20'/> Redis Module]
-        STORAGE[<img src='assets/icons/storage/object-storage.svg' width='20'/> Object Storage Module]
-        OAUTH[<img src='assets/icons/auth/oauth.svg' width='20'/> OAuth Module]
-        SECRETS[<img src='assets/icons/security/secrets.svg' width='20'/> Secrets Module]
-        INGRESS[<img src='assets/icons/networking/ingress.svg' width='20'/> Ingress Module]
-        OBS[<img src='assets/icons/monitoring/observability.svg' width='20'/> Observability Module]
+        PG[<img src="assets/icons/database/postgresql.svg" width="20"/> PostgreSQL Module]
+        REDIS[<img src="assets/icons/database/redis.svg" width="20"/> Redis Module]
+        STORAGE[<img src="assets/icons/storage/object-storage.svg" width="20"/> Object Storage Module]
+        OAUTH[<img src="assets/icons/auth/oauth.svg" width="20"/> OAuth Module]
+        SECRETS[<img src="assets/icons/security/secrets.svg" width="20"/> Secrets Module]
+        INGRESS[<img src="assets/icons/networking/ingress.svg" width="20"/> Ingress Module]
+        OBS[<img src="assets/icons/monitoring/observability.svg" width="20"/> Observability Module]
     end
     
     subgraph "Platform Module"
-        BTP[<img src='assets/icons/btp/settlemint.svg' width='20'/> BTP Platform Module]
+        BTP[<img src="assets/icons/btp/settlemint.svg" width="20"/> BTP Platform Module]
     end
     
     ROOT --> VPC
@@ -321,30 +321,30 @@ graph TD
         MODE_SELECTION[Mode Selection]
         
         subgraph "Implementation Modes"
-            K8S_MODE[<img src='assets/icons/k8s/kubernetes.svg' width='20'/> Kubernetes Mode]
-            MANAGED_MODE[<img src='assets/icons/cloud/managed.svg' width='20'/> Managed Mode]
-            BYO_MODE[<img src='assets/icons/infrastructure/byo.svg' width='20'/> BYO Mode]
+            K8S_MODE[<img src="assets/icons/k8s/kubernetes.svg" width="20"/> Kubernetes Mode]
+            MANAGED_MODE[<img src="assets/icons/cloud/managed.svg" width="20"/> Managed Mode]
+            BYO_MODE[<img src="assets/icons/infrastructure/byo.svg" width="20"/> BYO Mode]
         end
         
         subgraph "Kubernetes Mode"
-            HELM_CHARTS[<img src='assets/icons/k8s/helm.svg' width='20'/> Helm Charts]
-            OPERATORS[<img src='assets/icons/k8s/operator.svg' width='20'/> Operators]
-            MANIFESTS[<img src='assets/icons/k8s/manifests.svg' width='20'/> Manifests]
+            HELM_CHARTS[<img src="assets/icons/k8s/helm.svg" width="20"/> Helm Charts]
+            OPERATORS[<img src="assets/icons/k8s/operator.svg" width="20"/> Operators]
+            MANIFESTS[<img src="assets/icons/k8s/manifests.svg" width="20"/> Manifests]
         end
         
         subgraph "Managed Mode"
-            AWS_SERVICES[<img src='assets/icons/aws/aws.svg' width='20'/> AWS Services]
-            AZURE_SERVICES[<img src='assets/icons/azure/azure.svg' width='20'/> Azure Services]
-            GCP_SERVICES[<img src='assets/icons/gcp/gcp.svg' width='20'/> GCP Services]
+            AWS_SERVICES[<img src="assets/icons/aws/aws.svg" width="20"/> AWS Services]
+            AZURE_SERVICES[<img src="assets/icons/azure/azure.svg" width="20"/> Azure Services]
+            GCP_SERVICES[<img src="assets/icons/gcp/gcp.svg" width="20"/> GCP Services]
         end
         
         subgraph "BYO Mode"
-            EXTERNAL_SERVICES[<img src='assets/icons/infrastructure/external.svg' width='20'/> External Services]
-            CONNECTION_CONFIG[<img src='assets/icons/networking/connection.svg' width='20'/> Connection Config]
+            EXTERNAL_SERVICES[<img src="assets/icons/infrastructure/external.svg" width="20"/> External Services]
+            CONNECTION_CONFIG[<img src="assets/icons/networking/connection.svg" width="20"/> Connection Config]
         end
         
         subgraph "Output Normalization"
-            NORMALIZED_OUTPUTS[<img src='assets/icons/tools/normalize.svg' width='20'/> Normalized Outputs]
+            NORMALIZED_OUTPUTS[<img src="assets/icons/tools/normalize.svg" width="20"/> Normalized Outputs]
         end
     end
     
@@ -789,9 +789,9 @@ Modules maintain backward compatibility through:
 ## Next Steps
 
 - [Dependency Modules](12-postgres-module.md) - Detailed dependency module documentation
-- [Configuration Reference](24-configuration-reference.md) - Complete configuration options
-- [API Reference](25-api-reference.md) - Module outputs and variables reference
-- [Testing Guide](testing-guide.md) - Module testing procedures
+- [Configuration Reference](22-api-reference.md) - Complete configuration options
+- [API Reference](22-api-reference.md) - Module outputs and variables reference
+- [Contributing Guide](25-contributing.md) - Module testing procedures
 
 ---
 

@@ -15,12 +15,12 @@ BTP Universal Terraform provides a single Terraform stack that deploys the BTP H
 ```mermaid
 %%{init: {'theme':'neutral','securityLevel':'loose','flowchart':{'htmlLabels':true,'curve':'basis'}}}%%
 flowchart LR
-  subgraph Kubernetes
+  subgraph "Kubernetes"
     direction TB
     btp["BTP Helm Release"]
     ingress["Ingress + TLS"]
   end
-  subgraph Cloud
+  subgraph "Cloud"
     pg["Postgres"]
     redis["Redis"]
     obj["Object Storage"]

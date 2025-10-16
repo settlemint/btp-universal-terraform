@@ -13,30 +13,30 @@ graph TB
         MODE_SELECTION[Mode Selection]
         
         subgraph "Deployment Modes"
-            K8S_MODE[<img src='assets/icons/k8s/kubernetes.svg' width='20'/> Kubernetes Mode]
-            AWS_MODE[<img src='assets/icons/aws/cloudwatch.svg' width='20'/> AWS CloudWatch Mode]
-            AZURE_MODE[<img src='assets/icons/azure/monitor.svg' width='20'/> Azure Monitor Mode]
-            GCP_MODE[<img src='assets/icons/gcp/cloud-monitoring.svg' width='20'/> GCP Monitoring Mode]
-            BYO_MODE[<img src='assets/icons/monitoring/external.svg' width='20'/> BYO Mode]
+            K8S_MODE[<img src="assets/icons/k8s/kubernetes.svg" width="20"/> Kubernetes Mode]
+            AWS_MODE[<img src="assets/icons/aws/cloudwatch.svg" width="20"/> AWS CloudWatch Mode]
+            AZURE_MODE[<img src="assets/icons/azure/monitor.svg" width="20"/> Azure Monitor Mode]
+            GCP_MODE[<img src="assets/icons/gcp/cloud-monitoring.svg" width="20"/> GCP Monitoring Mode]
+            BYO_MODE[<img src="assets/icons/monitoring/external.svg" width="20"/> BYO Mode]
         end
         
         subgraph "Kubernetes Mode Components"
-            PROMETHEUS_HELM[<img src='assets/icons/k8s/helm.svg' width='20'/> Prometheus Helm Chart]
-            GRAFANA_HELM[<img src='assets/icons/k8s/helm.svg' width='20'/> Grafana Helm Chart]
-            LOKI_HELM[<img src='assets/icons/k8s/helm.svg' width='20'/> Loki Helm Chart]
-            PROMETHEUS[<img src='assets/icons/monitoring/prometheus.svg' width='20'/> Prometheus]
-            GRAFANA[<img src='assets/icons/monitoring/grafana.svg' width='20'/> Grafana]
-            LOKI[<img src='assets/icons/monitoring/loki.svg' width='20'/> Loki]
+            PROMETHEUS_HELM[<img src="assets/icons/k8s/helm.svg" width="20"/> Prometheus Helm Chart]
+            GRAFANA_HELM[<img src="assets/icons/k8s/helm.svg" width="20"/> Grafana Helm Chart]
+            LOKI_HELM[<img src="assets/icons/k8s/helm.svg" width="20"/> Loki Helm Chart]
+            PROMETHEUS[<img src="assets/icons/monitoring/prometheus.svg" width="20"/> Prometheus]
+            GRAFANA[<img src="assets/icons/monitoring/grafana.svg" width="20"/> Grafana]
+            LOKI[<img src="assets/icons/monitoring/loki.svg" width="20"/> Loki]
         end
         
         subgraph "Managed Mode Components"
-            CLOUDWATCH[<img src='assets/icons/aws/cloudwatch.svg' width='20'/> CloudWatch]
-            AZURE_MONITOR[<img src='assets/icons/azure/monitor.svg' width='20'/> Azure Monitor]
-            GCP_MONITORING[<img src='assets/icons/gcp/cloud-monitoring.svg' width='20'/> Cloud Monitoring]
+            CLOUDWATCH[<img src="assets/icons/aws/cloudwatch.svg" width="20"/> CloudWatch]
+            AZURE_MONITOR[<img src="assets/icons/azure/monitor.svg" width="20"/> Azure Monitor]
+            GCP_MONITORING[<img src="assets/icons/gcp/cloud-monitoring.svg" width="20"/> Cloud Monitoring]
         end
         
         subgraph "Output Normalization"
-            NORMALIZED[<img src='assets/icons/tools/normalize.svg' width='20'/> Normalized Outputs]
+            NORMALIZED[<img src="assets/icons/tools/normalize.svg" width="20"/> Normalized Outputs]
             PROMETHEUS_URL[Prometheus URL]
             GRAFANA_URL[Grafana URL]
             LOKI_URL[Loki URL]

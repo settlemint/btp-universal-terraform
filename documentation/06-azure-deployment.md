@@ -13,47 +13,47 @@ graph TB
         subgraph "Resource Group: btp-resources"
             subgraph "Virtual Network (10.0.0.0/16)"
                 subgraph "Public Subnets"
-                    LB[<img src='assets/icons/azure/load-balancer.svg' width='20'/> Application Gateway]
-                    NAT[<img src='assets/icons/azure/nat-gateway.svg' width='20'/> NAT Gateway]
+                    LB[<img src="assets/icons/azure/load-balancer.svg" width="20"/> Application Gateway]
+                    NAT[<img src="assets/icons/azure/nat-gateway.svg" width="20"/> NAT Gateway]
                 end
                 
                 subgraph "Private Subnets"
-                    AKS[<img src='assets/icons/azure/aks.svg' width='20'/> AKS Cluster]
-                    POSTGRES[<img src='assets/icons/azure/postgresql.svg' width='20'/> Database for PostgreSQL]
-                    REDIS[<img src='assets/icons/azure/redis-cache.svg' width='20'/> Cache for Redis]
+                    AKS[<img src="assets/icons/azure/aks.svg" width="20"/> AKS Cluster]
+                    POSTGRES[<img src="assets/icons/azure/postgresql.svg" width="20"/> Database for PostgreSQL]
+                    REDIS[<img src="assets/icons/azure/redis-cache.svg" width="20"/> Cache for Redis]
                 end
                 
                 subgraph "Storage"
-                    BLOB[<img src='assets/icons/azure/storage.svg' width='20'/> Blob Storage]
-                    DISKS[<img src='assets/icons/azure/managed-disk.svg' width='20'/> Managed Disks]
+                    BLOB[<img src="assets/icons/azure/storage.svg" width="20"/> Blob Storage]
+                    DISKS[<img src="assets/icons/azure/managed-disk.svg" width="20"/> Managed Disks]
                 end
                 
                 subgraph "Identity & Security"
-                    ADB2C[<img src='assets/icons/azure/active-directory.svg' width='20'/> AD B2C]
-                    KEYVAULT[<img src='assets/icons/azure/key-vault.svg' width='20'/> Key Vault]
-                    MSI[<img src='assets/icons/azure/managed-identity.svg' width='20'/> Managed Identity]
+                    ADB2C[<img src="assets/icons/azure/active-directory.svg" width="20"/> AD B2C]
+                    KEYVAULT[<img src="assets/icons/azure/key-vault.svg" width="20"/> Key Vault]
+                    MSI[<img src="assets/icons/azure/managed-identity.svg" width="20"/> Managed Identity]
                 end
             end
             
             subgraph "DNS & Certificates"
-                DNS[<img src='assets/icons/azure/dns.svg' width='20'/> Azure DNS]
-                APPGW[<img src='assets/icons/azure/application-gateway.svg' width='20'/> Application Gateway]
+                DNS[<img src="assets/icons/azure/dns.svg" width="20"/> Azure DNS]
+                APPGW[<img src="assets/icons/azure/application-gateway.svg" width="20"/> Application Gateway]
             end
         end
     end
     
     subgraph "Kubernetes Cluster (AKS)"
         subgraph "btp-deps namespace"
-            NGINX[<img src='assets/icons/k8s/nginx.svg' width='20'/> nginx Ingress]
-            CERT[<img src='assets/icons/k8s/cert-manager.svg' width='20'/> cert-manager]
-            PROM[<img src='assets/icons/k8s/prometheus.svg' width='20'/> Prometheus]
-            GRAFANA[<img src='assets/icons/k8s/grafana.svg' width='20'/> Grafana]
-            LOKI[<img src='assets/icons/k8s/loki.svg' width='20'/> Loki]
-            VAULT[<img src='assets/icons/k8s/vault.svg' width='20'/> Vault]
+            NGINX[<img src="assets/icons/k8s/nginx.svg" width="20"/> nginx Ingress]
+            CERT[<img src="assets/icons/k8s/cert-manager.svg" width="20"/> cert-manager]
+            PROM[<img src="assets/icons/k8s/prometheus.svg" width="20"/> Prometheus]
+            GRAFANA[<img src="assets/icons/k8s/grafana.svg" width="20"/> Grafana]
+            LOKI[<img src="assets/icons/k8s/loki.svg" width="20"/> Loki]
+            VAULT[<img src="assets/icons/k8s/vault.svg" width="20"/> Vault]
         end
         
         subgraph "settlemint namespace"
-            BTP[<img src='assets/icons/btp/settlemint.svg' width='20'/> SettleMint Platform]
+            BTP[<img src="assets/icons/btp/settlemint.svg" width="20"/> SettleMint Platform]
         end
     end
     
@@ -835,10 +835,10 @@ az redis export \
 
 ## Next Steps
 
-- [Security Best Practices](21-security.md) - Secure your Azure deployment
+- [Security Best Practices](19-security.md) - Secure your Azure deployment
 - [Operations Guide](18-operations.md) - Day-to-day operations
 - [Monitoring Setup](17-observability-module.md) - Comprehensive monitoring
-- [Backup Strategies](20-maintenance.md) - Backup and recovery procedures
+- [Backup Strategies](20-troubleshooting.md) - Backup and recovery procedures
 
 ---
 

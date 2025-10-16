@@ -7,7 +7,7 @@ The Terraform stack orchestrates cloud scaffolding, dependency modules, and the 
 ```mermaid
 %%{init: {'theme':'neutral','securityLevel':'loose','flowchart':{'htmlLabels':true,'curve':'basis'}}}%%
 flowchart LR
-  subgraph Cloud
+  subgraph "Cloud"
     direction TB
     net["Networking + IAM helpers"]
     pg["Postgres"]
@@ -18,7 +18,7 @@ flowchart LR
     metrics["Metrics and Logs"]
   end
 
-  subgraph Kubernetes
+  subgraph "Kubernetes"
     ingress["Ingress and TLS"]
     deps["Helm dependencies (k8s mode)"]
     btp["BTP Helm Release"]

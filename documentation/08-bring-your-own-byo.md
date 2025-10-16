@@ -12,45 +12,45 @@ graph TB
     subgraph "Existing Infrastructure"
         subgraph "Your Network"
             subgraph "Load Balancer"
-                LB[<img src='assets/icons/k8s/load-balancer.svg' width='20'/> Existing Load Balancer]
+                LB[<img src="assets/icons/k8s/load-balancer.svg" width="20"/> Existing Load Balancer]
             end
             
             subgraph "Kubernetes Cluster"
-                K8S[<img src='assets/icons/k8s/kubernetes.svg' width='20'/> Your K8s Cluster]
+                K8S[<img src="assets/icons/k8s/kubernetes.svg" width="20"/> Your K8s Cluster]
             end
             
             subgraph "Existing Databases"
-                POSTGRES[<img src='assets/icons/k8s/postgresql.svg' width='20'/> Your PostgreSQL]
-                REDIS[<img src='assets/icons/k8s/redis.svg' width='20'/> Your Redis]
+                POSTGRES[<img src="assets/icons/k8s/postgresql.svg" width="20"/> Your PostgreSQL]
+                REDIS[<img src="assets/icons/k8s/redis.svg" width="20"/> Your Redis]
             end
             
             subgraph "Existing Storage"
-                STORAGE[<img src='assets/icons/k8s/storage.svg' width='20'/> Your Object Storage]
+                STORAGE[<img src="assets/icons/k8s/storage.svg" width="20"/> Your Object Storage]
             end
             
             subgraph "Existing Identity"
-                IDENTITY[<img src='assets/icons/k8s/identity.svg' width='20'/> Your Identity Provider]
-                VAULT[<img src='assets/icons/k8s/vault.svg' width='20'/> Your Vault/Secrets]
+                IDENTITY[<img src="assets/icons/k8s/identity.svg" width="20"/> Your Identity Provider]
+                VAULT[<img src="assets/icons/k8s/vault.svg" width="20"/> Your Vault/Secrets]
             end
         end
         
         subgraph "DNS & Certificates"
-            DNS[<img src='assets/icons/k8s/dns.svg' width='20'/> Your DNS Provider]
-            CERTS[<img src='assets/icons/k8s/certificate.svg' width='20'/> Your Certificate Authority]
+            DNS[<img src="assets/icons/k8s/dns.svg" width="20"/> Your DNS Provider]
+            CERTS[<img src="assets/icons/k8s/certificate.svg" width="20"/> Your Certificate Authority]
         end
     end
     
     subgraph "BTP Components (Kubernetes)"
         subgraph "btp-deps namespace"
-            NGINX[<img src='assets/icons/k8s/nginx.svg' width='20'/> nginx Ingress]
-            CERT[<img src='assets/icons/k8s/cert-manager.svg' width='20'/> cert-manager]
-            PROM[<img src='assets/icons/k8s/prometheus.svg' width='20'/> Prometheus]
-            GRAFANA[<img src='assets/icons/k8s/grafana.svg' width='20'/> Grafana]
-            LOKI[<img src='assets/icons/k8s/loki.svg' width='20'/> Loki]
+            NGINX[<img src="assets/icons/k8s/nginx.svg" width="20"/> nginx Ingress]
+            CERT[<img src="assets/icons/k8s/cert-manager.svg" width="20"/> cert-manager]
+            PROM[<img src="assets/icons/k8s/prometheus.svg" width="20"/> Prometheus]
+            GRAFANA[<img src="assets/icons/k8s/grafana.svg" width="20"/> Grafana]
+            LOKI[<img src="assets/icons/k8s/loki.svg" width="20"/> Loki]
         end
         
         subgraph "settlemint namespace"
-            BTP[<img src='assets/icons/btp/settlemint.svg' width='20'/> SettleMint Platform]
+            BTP[<img src="assets/icons/btp/settlemint.svg" width="20"/> SettleMint Platform]
         end
     end
     
@@ -861,10 +861,10 @@ kubectl describe secret -n btp-deps
 
 ## Next Steps
 
-- [Security Best Practices](21-security.md) - Secure your BYO deployment
+- [Security Best Practices](19-security.md) - Secure your BYO deployment
 - [Operations Guide](18-operations.md) - Day-to-day operations
 - [Monitoring Setup](17-observability-module.md) - Comprehensive monitoring
-- [Backup Strategies](20-maintenance.md) - Backup and recovery procedures
+- [Backup Strategies](20-troubleshooting.md) - Backup and recovery procedures
 
 ---
 

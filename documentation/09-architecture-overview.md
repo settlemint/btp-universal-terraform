@@ -10,14 +10,14 @@ BTP Universal Terraform follows a modular, cloud-agnostic architecture that prov
 %%{init: {'theme':'neutral','securityLevel':'loose','flowchart':{'htmlLabels':true,'curve':'basis'}}}%%
 graph TB
     subgraph "User Interface"
-        USER[<img src='assets/icons/user/user.svg' width='20'/> DevOps Team]
-        ARCH[<img src='assets/icons/user/architect.svg' width='20'/> Solution Architect]
+        USER[<img src="assets/icons/user/user.svg" width="20"/> DevOps Team]
+        ARCH[<img src="assets/icons/user/architect.svg" width="20"/> Solution Architect]
     end
     
     subgraph "Deployment Layer"
-        TF[<img src='assets/icons/tools/terraform.svg' width='20'/> Terraform]
-        HELM[<img src='assets/icons/k8s/helm.svg' width='20'/> Helm]
-        K8S[<img src='assets/icons/k8s/kubernetes.svg' width='20'/> Kubernetes]
+        TF[<img src="assets/icons/tools/terraform.svg" width="20"/> Terraform]
+        HELM[<img src="assets/icons/k8s/helm.svg" width="20"/> Helm]
+        K8S[<img src="assets/icons/k8s/kubernetes.svg" width="20"/> Kubernetes]
     end
     
     subgraph "Root Module"
@@ -25,30 +25,30 @@ graph TB
     end
     
     subgraph "Infrastructure Modules"
-        VPC[<img src='assets/icons/infrastructure/vpc.svg' width='20'/> VPC Module]
-        K8S_CLUSTER[<img src='assets/icons/k8s/cluster.svg' width='20'/> K8s Cluster Module]
-        DNS[<img src='assets/icons/infrastructure/dns.svg' width='20'/> DNS Module]
+        VPC[<img src="assets/icons/infrastructure/vpc.svg" width="20"/> VPC Module]
+        K8S_CLUSTER[<img src="assets/icons/k8s/cluster.svg" width="20"/> K8s Cluster Module]
+        DNS[<img src="assets/icons/infrastructure/dns.svg" width="20"/> DNS Module]
     end
     
     subgraph "Dependency Modules"
-        PG[<img src='assets/icons/database/postgresql.svg' width='20'/> PostgreSQL]
-        REDIS[<img src='assets/icons/database/redis.svg' width='20'/> Redis]
-        STORAGE[<img src='assets/icons/storage/object-storage.svg' width='20'/> Object Storage]
-        OAUTH[<img src='assets/icons/auth/oauth.svg' width='20'/> OAuth/Identity]
-        SECRETS[<img src='assets/icons/security/secrets.svg' width='20'/> Secrets Manager]
-        INGRESS[<img src='assets/icons/networking/ingress.svg' width='20'/> Ingress & TLS]
-        OBS[<img src='assets/icons/monitoring/observability.svg' width='20'/> Observability]
+        PG[<img src="assets/icons/database/postgresql.svg" width="20"/> PostgreSQL]
+        REDIS[<img src="assets/icons/database/redis.svg" width="20"/> Redis]
+        STORAGE[<img src="assets/icons/storage/object-storage.svg" width="20"/> Object Storage]
+        OAUTH[<img src="assets/icons/auth/oauth.svg" width="20"/> OAuth/Identity]
+        SECRETS[<img src="assets/icons/security/secrets.svg" width="20"/> Secrets Manager]
+        INGRESS[<img src="assets/icons/networking/ingress.svg" width="20"/> Ingress & TLS]
+        OBS[<img src="assets/icons/monitoring/observability.svg" width="20"/> Observability]
     end
     
     subgraph "Platform Layer"
-        BTP[<img src='assets/icons/btp/settlemint.svg' width='20'/> SettleMint BTP Platform]
+        BTP[<img src="assets/icons/btp/settlemint.svg" width="20"/> SettleMint BTP Platform]
     end
     
     subgraph "Cloud Providers"
-        AWS[<img src='assets/icons/aws/aws.svg' width='20'/> AWS]
-        AZURE[<img src='assets/icons/azure/azure.svg' width='20'/> Azure]
-        GCP[<img src='assets/icons/gcp/gcp.svg' width='20'/> GCP]
-        GENERIC[<img src='assets/icons/k8s/kubernetes.svg' width='20'/> Generic K8s]
+        AWS[<img src="assets/icons/aws/aws.svg" width="20"/> AWS]
+        AZURE[<img src="assets/icons/azure/azure.svg" width="20"/> Azure]
+        GCP[<img src="assets/icons/gcp/gcp.svg" width="20"/> GCP]
+        GENERIC[<img src="assets/icons/k8s/kubernetes.svg" width="20"/> Generic K8s]
     end
     
     USER --> TF
@@ -215,30 +215,30 @@ Each dependency module follows a consistent three-mode pattern that supports mul
 graph TB
     subgraph "Dependency Module (Example: PostgreSQL)"
         subgraph "Mode Selection"
-            MODE[mode = "k8s" | "aws" | "azure" | "gcp" | "byo"]
+            MODE["mode: k8s, aws, azure, gcp, byo"]
         end
         
         subgraph "Implementation Layers"
             subgraph "Kubernetes Mode"
-                K8S_HELM[<img src='assets/icons/k8s/helm.svg' width='20'/> Helm Charts]
-                K8S_OPERATOR[<img src='assets/icons/k8s/operator.svg' width='20'/> Operators]
-                K8S_MANIFESTS[<img src='assets/icons/k8s/manifests.svg' width='20'/> Manifests]
+                K8S_HELM[<img src="assets/icons/k8s/helm.svg" width="20"/> Helm Charts]
+                K8S_OPERATOR[<img src="assets/icons/k8s/operator.svg" width="20"/> Operators]
+                K8S_MANIFESTS[<img src="assets/icons/k8s/manifests.svg" width="20"/> Manifests]
             end
             
             subgraph "Cloud Mode"
-                AWS_RDS[<img src='assets/icons/aws/rds.svg' width='20'/> AWS RDS]
-                AZURE_DB[<img src='assets/icons/azure/postgresql.svg' width='20'/> Azure Database]
-                GCP_SQL[<img src='assets/icons/gcp/cloud-sql.svg' width='20'/> Cloud SQL]
+                AWS_RDS[<img src="assets/icons/aws/rds.svg" width="20"/> AWS RDS]
+                AZURE_DB[<img src="assets/icons/azure/postgresql.svg" width="20"/> Azure Database]
+                GCP_SQL[<img src="assets/icons/gcp/cloud-sql.svg" width="20"/> Cloud SQL]
             end
             
             subgraph "BYO Mode"
-                EXTERNAL[<img src='assets/icons/infrastructure/external.svg' width='20'/> External Service]
-                CONNECTION[<img src='assets/icons/networking/connection.svg' width='20'/> Connection Config]
+                EXTERNAL[<img src="assets/icons/infrastructure/external.svg" width="20"/> External Service]
+                CONNECTION[<img src="assets/icons/networking/connection.svg" width="20"/> Connection Config]
             end
         end
         
         subgraph "Output Normalization"
-            NORMALIZED[<img src='assets/icons/tools/normalize.svg' width='20'/> Normalized Outputs]
+            NORMALIZED[<img src="assets/icons/tools/normalize.svg" width="20"/> Normalized Outputs]
             CONNECTION_STRING[Connection String]
             HOST[Host]
             PORT[Port]
@@ -317,31 +317,31 @@ sequenceDiagram
 %%{init: {'theme':'neutral','securityLevel':'loose','flowchart':{'htmlLabels':true,'curve':'basis'}}}%%
 graph LR
     subgraph "External Access"
-        USER[<img src='assets/icons/user/user.svg' width='20'/> Users]
-        API[<img src='assets/icons/api/api.svg' width='20'/> API Clients]
+        USER[<img src="assets/icons/user/user.svg" width="20"/> Users]
+        API[<img src="assets/icons/api/api.svg" width="20"/> API Clients]
     end
     
     subgraph "Ingress Layer"
-        LB[<img src='assets/icons/networking/load-balancer.svg' width='20'/> Load Balancer]
-        INGRESS[<img src='assets/icons/k8s/ingress.svg' width='20'/> Ingress Controller]
-        TLS[<img src='assets/icons/security/tls.svg' width='20'/> TLS Termination]
+        LB[<img src="assets/icons/networking/load-balancer.svg" width="20"/> Load Balancer]
+        INGRESS[<img src="assets/icons/k8s/ingress.svg" width="20"/> Ingress Controller]
+        TLS[<img src="assets/icons/security/tls.svg" width="20"/> TLS Termination]
     end
     
     subgraph "Platform Layer"
-        BTP[<img src='assets/icons/btp/settlemint.svg' width='20'/> BTP Platform]
-        AUTH[<img src='assets/icons/auth/authentication.svg' width='20'/> Authentication]
+        BTP[<img src="assets/icons/btp/settlemint.svg" width="20"/> BTP Platform]
+        AUTH[<img src="assets/icons/auth/authentication.svg" width="20"/> Authentication]
     end
     
     subgraph "Data Layer"
-        PG[<img src='assets/icons/database/postgresql.svg' width='20'/> PostgreSQL]
-        REDIS[<img src='assets/icons/database/redis.svg' width='20'/> Redis]
-        STORAGE[<img src='assets/icons/storage/object-storage.svg' width='20'/> Object Storage]
+        PG[<img src="assets/icons/database/postgresql.svg" width="20"/> PostgreSQL]
+        REDIS[<img src="assets/icons/database/redis.svg" width="20"/> Redis]
+        STORAGE[<img src="assets/icons/storage/object-storage.svg" width="20"/> Object Storage]
     end
     
     subgraph "Observability"
-        METRICS[<img src='assets/icons/monitoring/metrics.svg' width='20'/> Metrics]
-        LOGS[<img src='assets/icons/monitoring/logs.svg' width='20'/> Logs]
-        TRACES[<img src='assets/icons/monitoring/traces.svg' width='20'/> Traces]
+        METRICS[<img src="assets/icons/monitoring/metrics.svg" width="20"/> Metrics]
+        LOGS[<img src="assets/icons/monitoring/logs.svg" width="20"/> Logs]
+        TRACES[<img src="assets/icons/monitoring/traces.svg" width="20"/> Traces]
     end
     
     USER --> LB
@@ -379,32 +379,32 @@ graph LR
 graph TB
     subgraph "Security Layers"
         subgraph "Network Security"
-            VPC[<img src='assets/icons/security/vpc.svg' width='20'/> VPC/Network Isolation]
-            SG[<img src='assets/icons/security/security-groups.svg' width='20'/> Security Groups]
-            FW[<img src='assets/icons/security/firewall.svg' width='20'/> Firewall Rules]
+            VPC[<img src="assets/icons/security/vpc.svg" width="20"/> VPC/Network Isolation]
+            SG[<img src="assets/icons/security/security-groups.svg" width="20"/> Security Groups]
+            FW[<img src="assets/icons/security/firewall.svg" width="20"/> Firewall Rules]
         end
         
         subgraph "Transport Security"
-            TLS[<img src='assets/icons/security/tls.svg' width='20'/> TLS/SSL]
-            CERT[<img src='assets/icons/security/certificates.svg' width='20'/> Certificate Management]
+            TLS[<img src="assets/icons/security/tls.svg" width="20"/> TLS/SSL]
+            CERT[<img src="assets/icons/security/certificates.svg" width="20"/> Certificate Management]
         end
         
         subgraph "Authentication & Authorization"
-            OIDC[<img src='assets/icons/auth/oidc.svg' width='20'/> OIDC/OAuth2]
-            RBAC[<img src='assets/icons/security/rbac.svg' width='20'/> RBAC]
-            IAM[<img src='assets/icons/security/iam.svg' width='20'/> IAM]
+            OIDC[<img src="assets/icons/auth/oidc.svg" width="20"/> OIDC/OAuth2]
+            RBAC[<img src="assets/icons/security/rbac.svg" width="20"/> RBAC]
+            IAM[<img src="assets/icons/security/iam.svg" width="20"/> IAM]
         end
         
         subgraph "Secrets Management"
-            VAULT[<img src='assets/icons/security/vault.svg' width='20'/> Vault/Secrets Manager]
-            ENCRYPTION[<img src='assets/icons/security/encryption.svg' width='20'/> Encryption at Rest]
-            KMS[<img src='assets/icons/security/kms.svg' width='20'/> Key Management]
+            VAULT[<img src="assets/icons/security/vault.svg" width="20"/> Vault/Secrets Manager]
+            ENCRYPTION[<img src="assets/icons/security/encryption.svg" width="20"/> Encryption at Rest]
+            KMS[<img src="assets/icons/security/kms.svg" width="20"/> Key Management]
         end
         
         subgraph "Application Security"
-            JWT[<img src='assets/icons/auth/jwt.svg' width='20'/> JWT Tokens]
-            API_SEC[<img src='assets/icons/security/api-security.svg' width='20'/> API Security]
-            INPUT_VAL[<img src='assets/icons/security/input-validation.svg' width='20'/> Input Validation]
+            JWT[<img src="assets/icons/auth/jwt.svg" width="20"/> JWT Tokens]
+            API_SEC[<img src="assets/icons/security/api-security.svg" width="20"/> API Security]
+            INPUT_VAL[<img src="assets/icons/security/input-validation.svg" width="20"/> Input Validation]
         end
     end
     
@@ -430,25 +430,25 @@ graph TB
 graph TB
     subgraph "Auto-scaling Components"
         subgraph "Kubernetes Auto-scaling"
-            HPA[<img src='assets/icons/k8s/hpa.svg' width='20'/> Horizontal Pod Autoscaler]
-            VPA[<img src='assets/icons/k8s/vpa.svg' width='20'/> Vertical Pod Autoscaler]
-            CA[<img src='assets/icons/k8s/cluster-autoscaler.svg' width='20'/> Cluster Autoscaler]
+            HPA[<img src="assets/icons/k8s/hpa.svg" width="20"/> Horizontal Pod Autoscaler]
+            VPA[<img src="assets/icons/k8s/vpa.svg" width="20"/> Vertical Pod Autoscaler]
+            CA[<img src="assets/icons/k8s/cluster-autoscaler.svg" width="20"/> Cluster Autoscaler]
         end
         
         subgraph "Database Scaling"
-            PG_POOL[<img src='assets/icons/database/connection-pool.svg' width='20'/> Connection Pooling]
-            READ_REPLICAS[<img src='assets/icons/database/read-replicas.svg' width='20'/> Read Replicas]
-            SHARDING[<img src='assets/icons/database/sharding.svg' width='20'/> Sharding]
+            PG_POOL[<img src="assets/icons/database/connection-pool.svg" width="20"/> Connection Pooling]
+            READ_REPLICAS[<img src="assets/icons/database/read-replicas.svg" width="20"/> Read Replicas]
+            SHARDING[<img src="assets/icons/database/sharding.svg" width="20"/> Sharding]
         end
         
         subgraph "Cache Scaling"
-            REDIS_CLUSTER[<img src='assets/icons/database/redis-cluster.svg' width='20'/> Redis Cluster]
-            CACHE_WARMING[<img src='assets/icons/cache/warming.svg' width='20'/> Cache Warming]
+            REDIS_CLUSTER[<img src="assets/icons/database/redis-cluster.svg" width="20"/> Redis Cluster]
+            CACHE_WARMING[<img src="assets/icons/cache/warming.svg" width="20"/> Cache Warming]
         end
         
         subgraph "Storage Scaling"
-            CDN[<img src='assets/icons/storage/cdn.svg' width='20'/> CDN]
-            MULTI_REGION[<img src='assets/icons/storage/multi-region.svg' width='20'/> Multi-region Storage]
+            CDN[<img src="assets/icons/storage/cdn.svg" width="20"/> CDN]
+            MULTI_REGION[<img src="assets/icons/storage/multi-region.svg" width="20"/> Multi-region Storage]
         end
     end
     
@@ -471,29 +471,29 @@ graph TB
 %%{init: {'theme':'neutral','securityLevel':'loose','flowchart':{'htmlLabels':true,'curve':'basis'}}}%%
 graph TB
     subgraph "Application Layer"
-        APP[<img src='assets/icons/btp/settlemint.svg' width='20'/> BTP Platform]
+        APP[<img src="assets/icons/btp/settlemint.svg" width="20"/> BTP Platform]
     end
     
     subgraph "Data Collection"
-        METRICS_COLL[<img src='assets/icons/monitoring/metrics-collection.svg' width='20'/> Metrics Collection]
-        LOG_COLL[<img src='assets/icons/monitoring/log-collection.svg' width='20'/> Log Collection]
-        TRACE_COLL[<img src='assets/icons/monitoring/trace-collection.svg' width='20'/> Trace Collection]
+        METRICS_COLL[<img src="assets/icons/monitoring/metrics-collection.svg" width="20"/> Metrics Collection]
+        LOG_COLL[<img src="assets/icons/monitoring/log-collection.svg" width="20"/> Log Collection]
+        TRACE_COLL[<img src="assets/icons/monitoring/trace-collection.svg" width="20"/> Trace Collection]
     end
     
     subgraph "Storage Layer"
-        PROMETHEUS[<img src='assets/icons/monitoring/prometheus.svg' width='20'/> Prometheus]
-        LOKI[<img src='assets/icons/monitoring/loki.svg' width='20'/> Loki]
-        JAEGER[<img src='assets/icons/monitoring/jaeger.svg' width='20'/> Jaeger]
+        PROMETHEUS[<img src="assets/icons/monitoring/prometheus.svg" width="20"/> Prometheus]
+        LOKI[<img src="assets/icons/monitoring/loki.svg" width="20"/> Loki]
+        JAEGER[<img src="assets/icons/monitoring/jaeger.svg" width="20"/> Jaeger]
     end
     
     subgraph "Visualization Layer"
-        GRAFANA[<img src='assets/icons/monitoring/grafana.svg' width='20'/> Grafana]
-        ALERTMANAGER[<img src='assets/icons/monitoring/alertmanager.svg' width='20'/> AlertManager]
+        GRAFANA[<img src="assets/icons/monitoring/grafana.svg" width="20"/> Grafana]
+        ALERTMANAGER[<img src="assets/icons/monitoring/alertmanager.svg" width="20"/> AlertManager]
     end
     
     subgraph "Alerting Layer"
-        NOTIFICATIONS[<img src='assets/icons/monitoring/notifications.svg' width='20'/> Notifications]
-        WEBHOOKS[<img src='assets/icons/monitoring/webhooks.svg' width='20'/> Webhooks]
+        NOTIFICATIONS[<img src="assets/icons/monitoring/notifications.svg" width="20"/> Notifications]
+        WEBHOOKS[<img src="assets/icons/monitoring/webhooks.svg" width="20"/> Webhooks]
     end
     
     APP --> METRICS_COLL
@@ -533,24 +533,24 @@ graph TB
 %%{init: {'theme':'neutral','securityLevel':'loose','flowchart':{'htmlLabels':true,'curve':'basis'}}}%%
 graph LR
     subgraph "Source Control"
-        CODE[<img src='assets/icons/tools/source-control.svg' width='20'/> Code Repository]
-        CONFIG[<img src='assets/icons/tools/configuration.svg' width='20'/> Configuration Files]
+        CODE[<img src="assets/icons/tools/source-control.svg" width="20"/> Code Repository]
+        CONFIG[<img src="assets/icons/tools/configuration.svg" width="20"/> Configuration Files]
     end
     
     subgraph "CI/CD Pipeline"
-        BUILD[<img src='assets/icons/tools/build.svg' width='20'/> Build]
-        TEST[<img src='assets/icons/tools/test.svg' width='20'/> Test]
-        DEPLOY[<img src='assets/icons/tools/deploy.svg' width='20'/> Deploy]
+        BUILD[<img src="assets/icons/tools/build.svg" width="20"/> Build]
+        TEST[<img src="assets/icons/tools/test.svg" width="20"/> Test]
+        DEPLOY[<img src="assets/icons/tools/deploy.svg" width="20"/> Deploy]
     end
     
     subgraph "Infrastructure"
-        TERRAFORM[<img src='assets/icons/tools/terraform.svg' width='20'/> Terraform]
-        K8S[<img src='assets/icons/k8s/kubernetes.svg' width='20'/> Kubernetes]
+        TERRAFORM[<img src="assets/icons/tools/terraform.svg" width="20"/> Terraform]
+        K8S[<img src="assets/icons/k8s/kubernetes.svg" width="20"/> Kubernetes]
     end
     
     subgraph "Monitoring"
-        MONITOR[<img src='assets/icons/monitoring/monitoring.svg' width='20'/> Monitoring]
-        ALERT[<img src='assets/icons/monitoring/alerting.svg' width='20'/> Alerting]
+        MONITOR[<img src="assets/icons/monitoring/monitoring.svg" width="20"/> Monitoring]
+        ALERT[<img src="assets/icons/monitoring/alerting.svg" width="20"/> Alerting]
     end
     
     CODE --> BUILD
@@ -641,7 +641,7 @@ graph LR
 
 - [Deployment Flow](10-deployment-flow.md) - Detailed deployment process
 - [Module Structure](11-module-structure.md) - Module organization and dependencies
-- [Security Architecture](21-security.md) - Security design and implementation
+- [Security Architecture](19-security.md) - Security design and implementation
 - [Operations Architecture](18-operations.md) - Operational procedures and best practices
 
 ---

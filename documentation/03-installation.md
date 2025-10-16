@@ -449,8 +449,8 @@ open https://grafana.your-domain.com
 
 ## Next Steps
 
-1. **Platform Configuration**: [Production Deployment Guide](22-production-deployment.md)
-2. **Security Hardening**: [Security Best Practices](21-security.md)
+1. **Platform Configuration**: [AWS Deployment Guide](05-aws-deployment.md)
+2. **Security Hardening**: [Security Best Practices](19-security.md)
 3. **Operations**: [Operations Guide](18-operations.md)
 4. **Monitoring**: [Observability Setup](17-observability-module.md)
 

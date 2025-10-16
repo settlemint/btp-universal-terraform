@@ -61,10 +61,10 @@ graph TB
     end
     
     subgraph "Cloud Providers"
-        AWS[<img src='assets/icons/aws/aws.svg' width='20'/> AWS]
-        AZURE[<img src='assets/icons/azure/azure.svg' width='20'/> Azure]
-        GCP[<img src='assets/icons/gcp/gcp.svg' width='20'/> GCP]
-        GENERIC[<img src='assets/icons/k8s/kubernetes.svg' width='20'/> Generic K8s]
+        AWS[<img src="assets/icons/aws/aws.svg" width="20"/> AWS]
+        AZURE[<img src="assets/icons/azure/azure.svg" width="20"/> Azure]
+        GCP[<img src="assets/icons/gcp/gcp.svg" width="20"/> GCP]
+        GENERIC[<img src="assets/icons/k8s/kubernetes.svg" width="20"/> Generic K8s]
     end
     
     RM --> VPC

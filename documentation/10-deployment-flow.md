@@ -687,8 +687,7 @@ helm install --debug --dry-run release-name chart-name
 
 - [Module Structure](11-module-structure.md) - Understanding module organization
 - [Operations Guide](18-operations.md) - Day-to-day operations
-- [Troubleshooting Guide](19-troubleshooting.md) - Common issues and solutions
-- [Maintenance Guide](20-maintenance.md) - Updates and maintenance procedures
+- [Troubleshooting Guide](20-troubleshooting.md) - Common issues and solutions
 
 ---
 
