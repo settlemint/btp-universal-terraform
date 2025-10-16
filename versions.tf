@@ -40,7 +40,7 @@ terraform {
     }
     time = {
       source  = "hashicorp/time"
-      version = "~> 0.11"
+      version = "~> 0.13"
     }
     tls = {
       source  = "hashicorp/tls"
