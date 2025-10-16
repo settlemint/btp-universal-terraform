@@ -12,7 +12,7 @@
 <br/>
 
 <div align="center">
-  <a href="https://console.settlemint.com/documentation/">Documentation</a>
+  <a href="./documentation/README.md">📚 Documentation</a>
   <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
   <a href="https://github.com/settlemint/btp-universal-terraform/issues">Issues</a>
   <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
@@ -23,6 +23,18 @@
 ## Introduction
 
 This repository provides a consistent Terraform flow to provision BTP platform dependencies and install the BTP Helm chart. Use the same module to deploy to AWS, Azure, and GCP or any existing Kubernetes cluster. Each dependency can be provided via a managed cloud service, installed inside Kubernetes (Helm), or wired to your own (BYO) endpoints.
+
+## 📚 Documentation
+
+**Comprehensive Documentation**: [documentation/README.md](./documentation/README.md)
+
+- **Quick Start**: [documentation/04-quick-start-guide.md](./documentation/04-quick-start-guide.md)
+- **Platform Guides**: [AWS](documentation/05-aws-deployment.md) • [Azure](documentation/06-azure-deployment.md) • [GCP](documentation/07-gcp-deployment.md) • [BYO](documentation/08-bring-your-own-byo.md)
+- **Architecture**: [documentation/09-architecture-overview.md](./documentation/09-architecture-overview.md)
+- **Examples**: [documentation/23-examples.md](./documentation/23-examples.md)
+- **FAQ**: [documentation/24-faq.md](./documentation/24-faq.md)
+
+**Quick Reference**: [documentation/quick-reference/](./documentation/quick-reference/) (Concise guide for experienced users)
 
 ### Key Features
 
