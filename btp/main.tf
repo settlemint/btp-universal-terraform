@@ -78,15 +78,24 @@ locals {
     }
 
     # PostgreSQL connection - normalized across all providers
-    postgresql = {
-      enabled  = true
-      host     = var.postgres.host
-      port     = var.postgres.port
-      user     = var.postgres.username # Chart expects 'user' not 'username'
-      password = var.postgres.password
-      database = var.postgres.database
-      sslMode  = "require" # AWS RDS requires SSL
-    }
+    postgresql = merge(
+      {
+        enabled  = true
+        host     = var.postgres.host
+        port     = var.postgres.port
+        user     = var.postgres.username # Chart expects 'user' not 'username'
+        password = var.postgres.password
+        database = var.postgres.database
+      },
+      lower(coalesce(var.postgres.ssl_mode, "disable")) != "disable" ? {
+        ssl                 = "true"
+        sslMode             = var.postgres.ssl_mode
+        sslRejectUnauthorized = "false" # Allow managed service certificates without shipping CA bundle
+      } : {
+        ssl = "false"
+        sslMode = "disable"
+      }
+    )
 
     # Redis connection - normalized across all providers
     redis = {

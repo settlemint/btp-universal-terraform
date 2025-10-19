@@ -51,7 +51,7 @@ resource "aws_db_subnet_group" "postgres" {
   }
 }
 
-# Create parameter group to allow non-SSL connections (SSL is optional)
+# Create parameter group and enforce TLS connections
 resource "aws_db_parameter_group" "postgres" {
   count  = var.mode == "aws" ? 1 : 0
   name   = "${local.aws_config.identifier}-pg"
@@ -59,7 +59,7 @@ resource "aws_db_parameter_group" "postgres" {
 
   parameter {
     name  = "rds.force_ssl"
-    value = "0"
+    value = "1"
   }
 
   tags = {
@@ -121,4 +121,5 @@ locals {
   aws_user     = var.mode == "aws" ? aws_db_instance.postgres[0].username : null
   aws_password = var.mode == "aws" ? local.aws_config.password : null
   aws_database = var.mode == "aws" ? aws_db_instance.postgres[0].db_name : null
+  aws_ssl_mode = var.mode == "aws" ? "require" : null
 }

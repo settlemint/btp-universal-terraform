@@ -19,4 +19,5 @@ locals {
   gcp_user     = var.mode == "gcp" ? var.gcp.username : null
   gcp_password = var.mode == "gcp" ? var.gcp.password : null
   gcp_database = var.mode == "gcp" ? var.gcp.database : null
+  gcp_ssl_mode = var.mode == "gcp" ? "require" : null
 }

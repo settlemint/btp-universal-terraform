@@ -125,6 +125,7 @@ variable "byo" {
     username = string
     password = string
     database = string
+    ssl_mode = optional(string, "disable")
   })
   default     = null
   description = "Bring-your-own PostgreSQL configuration (external endpoint)"

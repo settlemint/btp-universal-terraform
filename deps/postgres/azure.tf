@@ -20,4 +20,5 @@ locals {
   azure_user     = var.mode == "azure" ? var.azure.admin_username : null
   azure_password = var.mode == "azure" ? var.azure.admin_password : null
   azure_database = var.mode == "azure" ? var.azure.database : null
+  azure_ssl_mode = var.mode == "azure" ? "require" : null
 }
