@@ -7,4 +7,5 @@ locals {
   byo_user     = var.mode == "byo" ? var.byo.username : null
   byo_password = var.mode == "byo" ? var.byo.password : null
   byo_database = var.mode == "byo" ? var.byo.database : null
+  byo_ssl_mode = var.mode == "byo" ? try(var.byo.ssl_mode, "disable") : null
 }

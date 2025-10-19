@@ -97,4 +97,5 @@ locals {
   k8s_user     = var.mode == "k8s" ? "postgres" : null
   k8s_password = var.mode == "k8s" ? try(data.kubernetes_secret.postgres[0].data["password"], "") : null
   k8s_database = var.mode == "k8s" ? var.k8s.database : null
+  k8s_ssl_mode = var.mode == "k8s" ? (var.k8s.enable_ssl ? "require" : "disable") : null
 }
