@@ -117,11 +117,11 @@ module "ingress_tls" {
     wildcard_hostname = try(module.dns.wildcard_hostname, null)
   }
   acme_email_candidates = [
-    for candidate in [
+    for candidate in compact([
       try(var.ingress_tls.k8s.acme_email, null),
       var.license_email
-    ] : trimspace(candidate)
-    if candidate != null && trimspace(candidate) != ""
+    ]) : trimspace(candidate)
+    if trimspace(candidate) != ""
   ]
   base_domain = var.base_domain
 
