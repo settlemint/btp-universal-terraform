@@ -1,12 +1,26 @@
-# Core Concepts
+# Concepts
 
-Understanding these patterns makes it easy to mix providers and modes without changing how the BTP Helm release consumes infrastructure.
+**Mix managed cloud services, in-cluster Helm charts, and external endpoints without changing how BTP consumes infrastructure.**
 
-## Dependency modes
-Each dependency can run in one of three modes, and you can mix modes across dependencies to fit the environment:
-- **managed** – leverage a fully managed cloud service (AWS implementations ship today; Azure/GCP are on the roadmap).
-- **k8s** – install a curated Helm chart inside the Kubernetes cluster.
-- **byo** – reference an externally managed endpoint and supply connection details.
+## Three dependency modes
+
+Each dependency supports:
+
+**Managed** – Cloud provider services
+- AWS: RDS, ElastiCache, S3, Cognito
+- Azure and GCP: Planned
+
+**Kubernetes** – In-cluster Helm charts
+- Zalando Postgres Operator
+- Bitnami Redis
+- MinIO, Keycloak, Vault
+- kube-prometheus-stack, Loki
+
+**Bring-your-own** – External endpoints
+- Provide connection details in tfvars
+- Use when another team manages the service
+
+**Mix modes freely.** Run RDS for Postgres and in-cluster Redis in the same deployment.
 
 ```mermaid
 %%{init: {'theme':'neutral','securityLevel':'loose','flowchart':{'htmlLabels':true,'curve':'basis'}}}%%
@@ -14,28 +28,44 @@ flowchart TD
   start[Select mode per dependency]
   start --> managed["Managed services"]
   start --> k8s["Kubernetes Helm charts"]
-  start --> byo["Bring your own endpoints"]
+  start --> byo["Bring-your-own endpoints"]
   managed --> outputs["Normalized outputs"]
   k8s --> outputs
   byo --> outputs
 ```
 
-## Unified outputs contract
-- Dependencies return consistent objects (`host`, `port`, `credentials`, `tls`, etc.) regardless of provider.
-- The `/btp` module consumes those outputs to populate Helm values without conditional logic.
-- Sensitive values are flagged so Terraform masks them, while non-sensitive URLs aid verification.
+## Normalized outputs contract
 
-## Configuration surfaces
-- Root module inputs accept one `mode` per dependency plus optional provider-specific `config` blocks.
-- tfvars files are the primary way to select modes and tweak defaults.
-- State layouts follow environment separation: one backend per workspace or env to avoid accidental cross-talk.
+**Dependencies return consistent objects regardless of mode:**
+- `host`, `port`
+- `credentials`
+- `tls`
+- Provider-specific metadata
+
+**The BTP module consumes these outputs** without conditional logic.
+
+**Sensitive values** are flagged so Terraform masks them.
+
+## Configuration
+
+**Root module inputs** accept one `mode` per dependency plus optional provider-specific `config` blocks.
+
+**tfvars files** are the primary way to select modes and override defaults.
+
+**State backends** should separate environments to avoid accidental cross-talk.
 
 ## Cross-cloud composition
-- Mix `aws`, `k8s`, and `byo` modes to suit each environment; managed modules exist for AWS today, while Azure and GCP rely on bring-your-own endpoints until native support lands.
-- The `cloud/aws` module exposes networking and IAM helpers consumed by dependency modules; equivalent scaffolding for other clouds is planned.
-- Dependencies never reach across provider boundaries; the root module orchestrates multiple dependency modules when needed.
+
+**Mix `aws`, `k8s`, and `byo` modes** to fit each environment.
+
+**Cloud scaffolding modules** (`cloud/aws`, planned for Azure/GCP) expose networking and IAM helpers.
+
+**Dependencies never reach across provider boundaries.** The root module orchestrates multiple dependency modules.
 
 ## Environment strategy
-- Use local profiles for development to validate charts and ingress quickly.
-- Promote shared environments by pinning tfvars and state backends (e.g., remote state in Terraform Cloud or S3/GCS).
-- Track secrets and credentials in the provider’s secret manager or external vault; avoid embedding them in tfvars or logs.
+
+**Local profiles** – Validate charts and ingress quickly
+
+**Shared environments** – Pin tfvars and use remote state backends (Terraform Cloud, S3, GCS)
+
+**Secrets** – Track in provider secret managers or external vaults, never in tfvars or logs

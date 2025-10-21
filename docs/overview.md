@@ -1,16 +1,25 @@
 # Overview
 
-BTP Universal Terraform provides a single Terraform stack that deploys the BTP Helm release on Kubernetes while wiring required dependencies (Postgres, Redis, Object Storage, OAuth, Secrets, Ingress/TLS, Metrics/Logs) from any supported provider mode: managed, in-cluster, or bring-your-own.
+**BTP Universal Terraform deploys the BTP Helm release on Kubernetes with all required dependencies.**
 
-## Why it matters
-- Settlemint-validated Terraform stack that covers AWS managed services today and Kubernetes-first installs everywhere.
-- Flexible installs: toggle dependencies between AWS managed, in-cluster Helm charts, or bring-your-own endpoints without touching BTP values.
-- Clear contracts and examples so teams can add other clouds (Azure, GCP) while native modules are completed.
+## Dependencies can run in three modes
 
-## Start here
-- Run the stack: [docs/getting-started.md](getting-started.md)
-- Understand the contract: [docs/concepts.md](concepts.md)
-- Review provider specifics: [docs/providers/aws.md](providers/aws.md), [docs/providers/azure.md](providers/azure.md), [docs/providers/gcp.md](providers/gcp.md), [docs/providers/generic.md](providers/generic.md)
+Each dependency (Postgres, Redis, Object Storage, OAuth, Secrets, Ingress/TLS, Metrics/Logs) supports:
+- **Managed** – Cloud provider services (RDS, ElastiCache, S3, Cognito on AWS)
+- **Kubernetes** – In-cluster Helm charts (Zalando Postgres, Bitnami Redis, MinIO, Keycloak)
+- **Bring-your-own** – External endpoints you provide
+
+**Mix modes freely.** Use AWS RDS for Postgres and in-cluster Redis in the same deployment.
+
+## AWS has complete managed support today
+
+AWS managed modes are fully implemented. Azure and GCP use bring-your-own mode until native support ships.
+
+## Next steps
+
+- [Getting Started](getting-started.md) – Install and verify
+- [Concepts](concepts.md) – How dependency modes work
+- [AWS Provider](providers/aws.md) – AWS-specific details
 
 ```mermaid
 %%{init: {'theme':'neutral','securityLevel':'loose','flowchart':{'htmlLabels':true,'curve':'basis'}}}%%

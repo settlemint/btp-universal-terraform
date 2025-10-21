@@ -1,51 +1,78 @@
 # Getting Started
 
-This guide walks through the common Terraform workflow and how to apply it to both local clusters and cloud providers.
-
 ## Prerequisites
-- Terraform 1.6 or newer.
-- `kubectl` and `helm` installed and pointed at your target cluster.
-- AWS credentials with permissions to create networking, database, cache, storage, and Cognito resources when you enable managed modes.
-- Optional: OrbStack, kind, or minikube for the local profile.
 
-## Terraform workflow
-1. `terraform init` – download providers and set up backends.
-2. `terraform plan -var-file <profile>.tfvars` – inspect the changes for your chosen dependency mix.
-3. `terraform apply -var-file <profile>.tfvars` – create/update infrastructure.
-4. `terraform destroy -var-file <profile>.tfvars` – clean up when done.
+Install these tools:
+- Terraform 1.6 or newer
+- `kubectl` and `helm` for your target cluster
+- Optional: OrbStack, kind, or minikube for local testing
 
-Need to adjust variables before you run plan? See `docs/configuration.md` for the inputs that typically change per environment.
+**For AWS managed services**, configure credentials with permissions for:
+- VPC, EC2, IAM
+- RDS, ElastiCache, S3
+- Cognito, Route53
 
-```mermaid
-%%{init: {'theme':'neutral','securityLevel':'loose','sequence':{'mirrorActors':false}}}%%
-sequenceDiagram
-  participant Dev as Developer
-  participant TF as Terraform CLI
-  participant Cloud as Cloud APIs
-  participant K8s as Kubernetes
-  Dev->>TF: init / plan / apply (profile tfvars)
-  TF->>Cloud: Provision managed dependencies (managed mode)
-  TF->>K8s: Install Helm dependencies (k8s mode)
-  TF->>K8s: Deploy BTP Helm release
-  Dev->>K8s: Verify ingress and dashboards
-```
+## Install the stack in four steps
 
-## Local fast path
-Use `examples/k8s-config.tfvars` to install everything inside your Kubernetes cluster.
-
+**1. Initialize Terraform**
 ```bash
 terraform init
+```
+
+**2. Review changes**
+```bash
+terraform plan -var-file examples/k8s-config.tfvars
+```
+
+**3. Apply configuration**
+```bash
 terraform apply -var-file examples/k8s-config.tfvars
+```
+
+**4. Clean up when done**
+```bash
+terraform destroy -var-file examples/k8s-config.tfvars
+```
+
+**Customize inputs** – See [Configuration](configuration.md) for variables you can override.
+
+## Choose an example profile
+
+**Local development**
+```bash
+examples/k8s-config.tfvars        # All dependencies in-cluster
+```
+
+**AWS managed services**
+```bash
+examples/aws-config.tfvars        # RDS, ElastiCache, S3, Cognito
+examples/mixed-config.tfvars      # Mix AWS managed + in-cluster
+```
+
+**Other clouds** (bring-your-own endpoints)
+```bash
+examples/azure-config.tfvars
+examples/gcp-config.tfvars
+examples/byo-config.tfvars
+```
+
+## Verify the deployment
+
+**Check ingress is accessible**
+```bash
+terraform output post_deploy_message
+```
+
+**View all service URLs**
+```bash
+terraform output -json post_deploy_urls
+```
+
+**Get kubeconfig** (when Terraform creates the cluster)
+```bash
+terraform output -json k8s_cluster | jq -r '.value.kubeconfig' > kubeconfig.yaml
+export KUBECONFIG=$PWD/kubeconfig.yaml
 kubectl get pods -A
 ```
 
-## Cloud profile flow
-1. Choose a provider file under `examples/` (e.g., `aws-config.tfvars`, `azure-config.tfvars`, `gcp-config.tfvars`, `mixed-config.tfvars`, or `byo-config.tfvars`). Azure and GCP profiles currently operate in BYO mode until native modules are implemented.
-2. Export AWS credentials with permissions to create networking, database, cache, storage, and Cognito resources.
-3. Initialize Terraform and run `plan` to review managed resources.
-4. Apply and capture the Terraform outputs (ingress hostnames, service URLs) needed by the BTP application team.
-
-Verification tips:
-- Confirm ingress reachability on the published hostnames (NodePort or load balancer, depending on your cluster).
-- Check managed service dashboards (e.g., AWS RDS) when you enable managed modes.
-- Rotate secrets via the provider’s secret manager (or Vault) to ensure bindings work end-to-end.
+**For AWS managed mode**, check the AWS console for RDS, ElastiCache, and S3 resources.
