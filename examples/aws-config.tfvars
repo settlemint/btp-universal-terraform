@@ -172,7 +172,7 @@ oauth = {
     # user_pool_id   = "eu-central-1_xxxxx" # If using existing pool
     # client_id      = "xxxxx"
     # client_secret  = "xxxxx"
-    callback_urls = ["https://btp.aws.example.com/auth/callback"]
+    callback_urls = ["https://btp.aws.example.com/api/auth/callback/cognito"]
   }
 }
 
