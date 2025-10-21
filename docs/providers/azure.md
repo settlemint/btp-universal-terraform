@@ -1,13 +1,31 @@
-# Azure Provider Guide
+# Azure Provider
 
-## Status
-Native Azure modules are not implemented yet. The Azure mode files under each dependency are placeholders so you can describe connection details, but Terraform does not currently provision Azure resources.
+**Native Azure modules are not implemented yet. Use bring-your-own mode to connect existing Azure services.**
+
+## Azure support is planned
+
+When implemented, the `cloud/azure` module will provision:
+- Virtual networks and managed identities
+- Azure Database for PostgreSQL Flexible Server
+- Azure Cache for Redis
+- Blob Storage
+- Entra ID (Azure AD)
+- Key Vault
 
 ## Working with Azure today
-- Use `mode = "byo"` to connect to existing Azure services (Flexible Server, Cache for Redis, Blob Storage, Entra ID, Key Vault, etc.) and supply endpoints/credentials via tfvars.
-- Keep ingress, metrics/logs, and secrets in `k8s` mode (ingress-nginx, kube-prometheus-stack, Vault) until Azure-specific integrations land.
-- Manage Azure networking, identities, and DNS outside of this repository; feed the resulting values into the root module inputs.
 
-## Roadmap considerations
-- When adding Azure support, align with managed identities and private networking expectations in `cloud/azure`.
-- Document any required roles or Azure CLI steps in this guide so teams can follow a consistent pattern.
+**Use `mode = "byo"` for all dependencies**
+- Provide endpoints and credentials in tfvars
+- Keep ingress, metrics/logs, and secrets in `k8s` mode
+
+**Manage outside Terraform**
+- Networking, identities, DNS
+- All Azure resources
+- Feed resulting values into root module inputs
+
+## Roadmap
+
+When adding Azure support:
+- Align with managed identities and private networking
+- Document required roles and Azure CLI steps
+- Follow consistent patterns with AWS implementation

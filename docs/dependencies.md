@@ -1,27 +1,61 @@
 # Dependencies
 
-Each dependency supports managed, k8s, or BYO modes and emits a consistent output object. You can mix modes across the stack; the table below reflects what is implemented right now.
+**Each dependency supports managed, Kubernetes, or bring-your-own modes. All emit consistent output objects.**
 
-| Dependency     | Modes ready         | Notes |
-|----------------|---------------------|-------|
-| Postgres       | `aws`, `k8s`, `byo` | AWS RDS provisioning ships today. Azure and GCP files are placeholders—use BYO connection details for those clouds. |
-| Redis          | `aws`, `k8s`, `byo` | Supports ElastiCache, Bitnami Helm chart, or external Redis endpoints. Azure/GCP managed paths still TODO. |
-| Object Storage | `aws`, `k8s`, `byo` | Creates S3 buckets or deploys MinIO. Other providers require existing buckets and credentials via BYO. |
-| OAuth          | `aws`, `k8s`, `byo` | AWS Cognito and Keycloak integrations exist; Azure/GCP implementations are placeholders awaiting contributions. |
-| Secrets        | `k8s`, `byo`        | Ships with Vault-on-Kubernetes and BYO secret backends. AWS/Azure/GCP managed secret stores are not wired yet. |
-| Ingress/TLS    | `k8s`               | Installs ingress-nginx and cert-manager with optional Route53 DNS-01 automation. No cloud load balancer automation yet. |
-| Metrics/Logs   | `k8s`               | Installs kube-prometheus-stack and Loki. Managed observability integrations are planned. |
+## Available modes by dependency
 
-## Picking a mode
-- Prefer managed (`mode = "aws"`) when you run on AWS and want Terraform to provision the backing service.
-- Use `k8s` mode for local development or when you want everything inside the cluster.
-- Choose `byo` when another team already operates the dependency and can supply stable endpoints and credentials.
+| Dependency | AWS | Kubernetes | Bring-your-own | Notes |
+|------------|-----|------------|----------------|-------|
+| Postgres | ✓ | ✓ | ✓ | AWS RDS or Zalando Operator |
+| Redis | ✓ | ✓ | ✓ | ElastiCache or Bitnami chart |
+| Object Storage | ✓ | ✓ | ✓ | S3 or MinIO |
+| OAuth | ✓ | ✓ | ✓ | Cognito or Keycloak |
+| Secrets | — | ✓ | ✓ | Vault (k8s), AWS Secrets Manager planned |
+| Ingress/TLS | — | ✓ | — | ingress-nginx + cert-manager |
+| Metrics/Logs | — | ✓ | — | kube-prometheus-stack + Loki |
 
-### Ingress/TLS quick tips
-- Toggle `ingress_tls.k8s.acme_environment` between `production` and `staging` when working with Let's Encrypt. Staging is handy for iterative applies because it avoids the production rate limits while you test.
-- When you switch environments, pick a matching `issuer_name` (for example `letsencrypt-staging` vs `letsencrypt-prod`) so cert-manager generates a fresh order.
+**Azure and GCP** managed modes are not yet implemented. Use bring-your-own for those clouds.
 
-## Outputs contract notes
-- Outputs return Terraform objects; avoid parsing raw strings wherever possible.
-- Sensitive fields (passwords, tokens, client secrets) surface as `sensitive = true` to prevent accidental logging.
-- Additional provider-specific metadata is nested under each dependency's `metadata` map for future extensibility.
+## Choosing a mode
+
+**Managed (`mode = "aws"`)** – Terraform provisions the backing service
+- Use on AWS when you want automated infrastructure
+- Requires `vpc.aws` configuration
+
+**Kubernetes (`mode = "k8s"`)** – Helm chart installs inside cluster
+- Use for local development
+- Use when you want everything in-cluster
+- Ensure sufficient cluster capacity and storage classes
+
+**Bring-your-own (`mode = "byo"`)** – External endpoints
+- Use when another team manages the dependency
+- Provide stable endpoints and credentials in tfvars
+
+## Ingress and TLS configuration
+
+**Toggle Let's Encrypt environment**
+```bash
+ingress_tls.k8s.acme_environment = "staging"  # or "production"
+```
+
+**Staging is useful for testing**
+- Avoids production rate limits
+- Use while iterating on configuration
+
+**Match issuer name to environment**
+- `letsencrypt-staging` for staging
+- `letsencrypt-prod` for production
+- cert-manager generates a fresh certificate order
+
+## Output contract
+
+**Outputs return Terraform objects**, not raw strings
+- Avoid string parsing where possible
+
+**Sensitive fields** are marked `sensitive = true`
+- Passwords, tokens, client secrets
+- Prevents accidental logging
+
+**Provider-specific metadata** nested under `metadata` map
+- Allows future extensibility
+- Keeps core contract stable
