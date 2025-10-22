@@ -24,12 +24,15 @@ locals {
 }
 
 data "aws_route53_zone" "selected" {
-  count = var.mode == "aws" && local.aws_zone_id_input == null ? 1 : 0
-  name  = local.aws_zone_name_input
+  count = var.mode == "aws" ? 1 : 0
+
+  zone_id = local.aws_zone_id_input
+  name    = local.aws_zone_id_input == null ? local.aws_zone_name_input : null
 }
 
 locals {
-  aws_zone_id        = var.mode == "aws" ? coalesce(local.aws_zone_id_input, try(data.aws_route53_zone.selected[0].zone_id, null)) : null
+  aws_zone_lookup_id = length(data.aws_route53_zone.selected) > 0 ? try(data.aws_route53_zone.selected[0].zone_id, null) : null
+  aws_zone_id        = var.mode == "aws" ? coalesce(local.aws_zone_id_input, local.aws_zone_lookup_id) : null
   aws_main_type      = var.mode == "aws" ? coalesce(try(local.aws_config.main_record_type, null), "A") : null
   aws_wildcard_type  = var.mode == "aws" ? coalesce(try(local.aws_config.wildcard_record_type, null), "CNAME") : null
   aws_main_value     = var.mode == "aws" ? try(local.aws_config.main_record_value, null) : null
@@ -37,74 +40,71 @@ locals {
 }
 
 resource "aws_route53_record" "main" {
-  count   = var.mode == "aws" && local.aws_main_alias == null ? 1 : 0
+  count   = var.mode == "aws" ? 1 : 0
   zone_id = local.aws_zone_id
   name    = var.domain
-  type    = local.aws_main_type
-  ttl     = coalesce(try(local.aws_config.main_ttl, null), 300)
-  records = [local.aws_main_value]
-}
+  type    = local.aws_main_alias != null ? coalesce(try(local.aws_main_alias.type, null), local.aws_main_type) : local.aws_main_type
+  ttl     = local.aws_main_alias == null ? coalesce(try(local.aws_config.main_ttl, null), 300) : null
+  records = local.aws_main_alias == null && local.aws_main_value != null ? [local.aws_main_value] : null
 
-resource "aws_route53_record" "main_alias" {
-  count   = var.mode == "aws" && local.aws_main_alias != null ? 1 : 0
-  zone_id = local.aws_zone_id
-  name    = var.domain
-  type    = coalesce(try(local.aws_main_alias.type, null), local.aws_main_type)
+  dynamic "alias" {
+    for_each = local.aws_main_alias != null ? [local.aws_main_alias] : []
+    content {
+      name                   = alias.value.name
+      zone_id                = alias.value.zone_id
+      evaluate_target_health = coalesce(try(alias.value.evaluate_target_health, null), false)
+    }
+  }
 
-  alias {
-    name                   = local.aws_main_alias.name
-    zone_id                = local.aws_main_alias.zone_id
-    evaluate_target_health = coalesce(try(local.aws_main_alias.evaluate_target_health, null), false)
+  lifecycle {
+    precondition {
+      condition     = local.aws_main_alias != null || local.aws_main_value != null
+      error_message = "dns.aws.main_record_value must be set when alias is not provided."
+    }
   }
 }
 
 resource "aws_route53_record" "wildcard" {
-  count   = var.mode == "aws" && var.enable_wildcard && local.aws_wildcard_alias == null ? 1 : 0
+  count   = var.mode == "aws" && var.enable_wildcard ? 1 : 0
   zone_id = local.aws_zone_id
   name    = local.wildcard_hostname
-  type    = local.aws_wildcard_type
-  ttl     = coalesce(try(local.aws_config.wildcard_ttl, null), try(local.aws_config.main_ttl, null), 300)
-  records = [local.aws_wildcard_value]
-}
+  type    = local.aws_wildcard_alias != null ? coalesce(try(local.aws_wildcard_alias.type, null), local.aws_wildcard_type) : local.aws_wildcard_type
+  ttl     = local.aws_wildcard_alias == null ? coalesce(try(local.aws_config.wildcard_ttl, null), try(local.aws_config.main_ttl, null), 300) : null
+  records = local.aws_wildcard_alias == null && local.aws_wildcard_value != null ? [local.aws_wildcard_value] : null
 
-resource "aws_route53_record" "wildcard_alias" {
-  count   = var.mode == "aws" && var.enable_wildcard && local.aws_wildcard_alias != null ? 1 : 0
-  zone_id = local.aws_zone_id
-  name    = local.wildcard_hostname
-  type    = coalesce(try(local.aws_wildcard_alias.type, null), local.aws_wildcard_type)
-
-  alias {
-    name                   = local.aws_wildcard_alias.name
-    zone_id                = local.aws_wildcard_alias.zone_id
-    evaluate_target_health = coalesce(try(local.aws_wildcard_alias.evaluate_target_health, null), false)
+  dynamic "alias" {
+    for_each = local.aws_wildcard_alias != null ? [local.aws_wildcard_alias] : []
+    content {
+      name                   = alias.value.name
+      zone_id                = alias.value.zone_id
+      evaluate_target_health = coalesce(try(alias.value.evaluate_target_health, null), false)
+    }
   }
 }
 
 locals {
   aws_records = var.mode == "aws" ? concat(
-    [for r in aws_route53_record.main : {
+    [for r in aws_route53_record.main : try(r.alias[0].name, null) != null ? {
       name   = r.fqdn
-      type   = local.aws_main_type
-      target = local.aws_main_value
-      ttl    = coalesce(try(local.aws_config.main_ttl, null), 300)
-    }],
-    [for r in aws_route53_record.main_alias : {
-      name   = r.fqdn
-      type   = coalesce(try(local.aws_main_alias.type, null), local.aws_main_type)
-      target = local.aws_main_alias.name
+      type   = r.type
+      target = r.alias[0].name
       alias  = true
-    }],
-    [for r in aws_route53_record.wildcard : {
+      } : {
       name   = r.fqdn
-      type   = local.aws_wildcard_type
-      target = local.aws_wildcard_value
-      ttl    = coalesce(try(local.aws_config.wildcard_ttl, null), try(local.aws_config.main_ttl, null), 300)
+      type   = r.type
+      target = length(try(r.records, [])) > 0 ? tolist(r.records)[0] : null
+      ttl    = r.ttl
     }],
-    [for r in aws_route53_record.wildcard_alias : {
+    [for r in aws_route53_record.wildcard : try(r.alias[0].name, null) != null ? {
       name   = r.fqdn
-      type   = coalesce(try(local.aws_wildcard_alias.type, null), local.aws_wildcard_type)
-      target = local.aws_wildcard_alias.name
+      type   = r.type
+      target = r.alias[0].name
       alias  = true
+      } : {
+      name   = r.fqdn
+      type   = r.type
+      target = length(try(r.records, [])) > 0 ? tolist(r.records)[0] : null
+      ttl    = r.ttl
     }]
   ) : []
 

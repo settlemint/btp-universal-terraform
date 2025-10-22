@@ -346,6 +346,9 @@ variable "ingress_tls" {
       route53_credentials_secret_name = optional(string)
       acme_email                      = optional(string)
       acme_environment                = optional(string, "staging")
+      load_balancer_service_name      = optional(string)
+      load_balancer_tags              = optional(map(string), {})
+      load_balancer_lookup_enabled    = optional(bool)
     }), {})
   })
   default = {}
