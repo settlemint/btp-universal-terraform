@@ -1,11 +1,7 @@
 # AWS EKS Cluster Implementation
 
 locals {
-  aws_vpc_id = coalesce(
-    try(var.aws.vpc_id, null),
-    try(var.aws_context.vpc_id, null),
-    null
-  )
+  aws_vpc_id = var.aws.vpc_id != null ? var.aws.vpc_id : var.aws_context.vpc_id
 
   aws_subnet_ids = (
     length(try(var.aws.subnet_ids, [])) > 0 ?
@@ -94,6 +90,38 @@ resource "aws_security_group" "eks_cluster" {
   )
 }
 
+resource "aws_security_group_rule" "eks_cluster_nodeport_ingress" {
+  count             = var.mode == "aws" ? 1 : 0
+  description       = "Allow NodePort range for Kubernetes LoadBalancer targets"
+  type              = "ingress"
+  security_group_id = aws_eks_cluster.main[0].vpc_config[0].cluster_security_group_id
+  from_port         = 30000
+  to_port           = 32767
+  protocol          = "tcp"
+  cidr_blocks       = ["0.0.0.0/0"]
+}
+
+resource "aws_security_group_rule" "eks_cluster_kubelet_ingress" {
+  count                    = var.mode == "aws" ? 1 : 0
+  description              = "Allow control plane to reach kubelet"
+  type                     = "ingress"
+  security_group_id        = aws_eks_cluster.main[0].vpc_config[0].cluster_security_group_id
+  from_port                = 10250
+  to_port                  = 10250
+  protocol                 = "tcp"
+  source_security_group_id = aws_security_group.eks_cluster[0].id
+}
+
+resource "aws_security_group_rule" "eks_cluster_https_ingress" {
+  count                    = var.mode == "aws" ? 1 : 0
+  description              = "Allow control plane to reach node webhooks"
+  type                     = "ingress"
+  security_group_id        = aws_eks_cluster.main[0].vpc_config[0].cluster_security_group_id
+  from_port                = 443
+  to_port                  = 443
+  protocol                 = "tcp"
+  source_security_group_id = aws_security_group.eks_cluster[0].id
+}
 # KMS key for secrets encryption
 resource "aws_kms_key" "eks" {
   count               = var.mode == "aws" && var.aws.enable_secrets_encryption && var.aws.kms_key_arn == null ? 1 : 0
@@ -283,6 +311,12 @@ resource "aws_eks_addon" "vpc_cni" {
   cluster_name                = aws_eks_cluster.main[0].name
   addon_name                  = "vpc-cni"
   resolve_conflicts_on_update = "OVERWRITE"
+  configuration_values = jsonencode({
+    env = {
+      ENABLE_PREFIX_DELEGATION = "true"
+      WARM_PREFIX_TARGET       = "1"
+    }
+  })
 }
 
 resource "aws_eks_addon" "kube_proxy" {
@@ -433,7 +467,7 @@ resource "null_resource" "cleanup_k8s_loadbalancers" {
 }
 
 resource "null_resource" "cleanup_k8s_cni_enis" {
-  count = var.mode == "aws" && local.aws_vpc_id != null ? 1 : 0
+  count = var.mode == "aws" ? 1 : 0
 
   triggers = {
     cluster_name = aws_eks_cluster.main[0].name
