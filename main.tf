@@ -56,6 +56,11 @@ locals {
 
   # Select OAuth outputs based on whether module is enabled
   oauth_outputs = local.oauth_enabled && length(module.oauth) > 0 ? module.oauth[0] : local.oauth_null_outputs
+
+  ingress_lb_lookup_enabled = coalesce(
+    try(var.ingress_tls.k8s.load_balancer_lookup_enabled, null),
+    module.k8s_cluster.mode == "aws"
+  )
 }
 
 # AWS cloud scaffolding (VPC, shared networking)
@@ -133,6 +138,10 @@ module "ingress_tls" {
   aws_secret_access_key           = var.aws_secret_access_key
   acme_email                      = try(var.ingress_tls.k8s.acme_email, null)
   default_certificate             = try(var.ingress_tls.k8s.default_certificate, null)
+  load_balancer_service_name      = try(var.ingress_tls.k8s.load_balancer_service_name, null)
+  load_balancer_tags              = try(var.ingress_tls.k8s.load_balancer_tags, {})
+  lookup_load_balancer            = local.ingress_lb_lookup_enabled
+  cluster_name                    = module.k8s_cluster.cluster_name
 }
 
 module "postgres" {
@@ -196,19 +205,65 @@ module "object_storage" {
   }
 }
 
+locals {
+  dns_mode        = try(var.dns.mode, "byo")
+  ingress_lb_info = try(module.ingress_tls.load_balancer, null)
+  ingress_lb_hostname = local.ingress_lb_info == null ? null : coalesce(
+    try(local.ingress_lb_info.hostname, null),
+    try(local.ingress_lb_info.dns_name, null)
+  )
+  ingress_lb_dns_name         = try(local.ingress_lb_info.dns_name, local.ingress_lb_hostname)
+  ingress_lb_zone_id          = try(local.ingress_lb_info.zone_id, null)
+  dns_aws_base_config         = local.dns_mode == "aws" ? try(var.dns.aws, null) : null
+  dns_existing_alias          = local.dns_aws_base_config == null ? null : try(local.dns_aws_base_config.alias, null)
+  dns_existing_wildcard_alias = local.dns_aws_base_config == null ? null : try(local.dns_aws_base_config.wildcard_alias, null)
+  dns_should_inject_alias     = local.dns_aws_base_config != null && local.ingress_lb_zone_id != null && local.dns_existing_alias == null
+  dns_should_inject_wildcard  = local.dns_aws_base_config != null && local.ingress_lb_zone_id != null && local.dns_existing_wildcard_alias == null && try(var.dns.enable_wildcard, true)
+  dns_injected_alias = local.dns_should_inject_alias ? {
+    name                   = local.ingress_lb_dns_name
+    zone_id                = local.ingress_lb_zone_id
+    evaluate_target_health = false
+  } : null
+  dns_alias_config = local.dns_should_inject_alias ? {
+    main_record_type  = "A"
+    main_record_value = null
+    alias             = local.dns_injected_alias
+  } : {}
+  dns_wildcard_alias_config = local.dns_should_inject_wildcard ? {
+    wildcard_record_type  = "A"
+    wildcard_record_value = null
+    wildcard_alias        = local.dns_injected_alias
+  } : {}
+  dns_hostname_config = local.dns_aws_base_config != null && !local.dns_should_inject_alias && local.ingress_lb_hostname != null && local.dns_existing_alias == null ? {
+    main_record_type  = "CNAME"
+    main_record_value = local.ingress_lb_hostname
+  } : {}
+  dns_wildcard_hostname_config = local.dns_aws_base_config != null && !local.dns_should_inject_wildcard && local.ingress_lb_hostname != null && local.dns_existing_wildcard_alias == null && try(var.dns.enable_wildcard, true) ? {
+    wildcard_record_type  = "CNAME"
+    wildcard_record_value = local.ingress_lb_hostname
+  } : {}
+  dns_aws_config = local.dns_aws_base_config == null ? null : merge(
+    local.dns_aws_base_config,
+    local.dns_hostname_config,
+    local.dns_wildcard_hostname_config,
+    local.dns_alias_config,
+    local.dns_wildcard_alias_config
+  )
+}
+
 module "dns" {
   source = "./deps/dns"
 
-  mode                    = try(var.dns.mode, "byo")
+  mode                    = local.dns_mode
   domain                  = coalesce(try(var.dns.domain, null), var.base_domain)
   release_name            = var.btp.release_name
-  enable_wildcard         = try(var.dns.enable_wildcard, true)
-  include_wildcard_in_tls = coalesce(try(var.dns.include_wildcard_in_tls, null), try(var.dns.enable_wildcard, false), false)
+  enable_wildcard         = coalesce(try(var.dns.enable_wildcard, null), true)
+  include_wildcard_in_tls = coalesce(try(var.dns.include_wildcard_in_tls, null), try(var.dns.enable_wildcard, null), false)
   cert_manager_issuer     = try(var.dns.cert_manager_issuer, null)
   tls_secret_name         = try(var.dns.tls_secret_name, null)
-  ssl_redirect            = try(var.dns.ssl_redirect, true)
+  ssl_redirect            = coalesce(try(var.dns.ssl_redirect, null), false)
   annotations             = try(var.dns.annotations, {})
-  aws                     = try(var.dns.aws, null)
+  aws                     = local.dns_aws_config
   azure                   = try(var.dns.azure, null)
   gcp                     = try(var.dns.gcp, null)
   cf                      = try(var.dns.cf, null)

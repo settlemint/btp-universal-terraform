@@ -116,12 +116,8 @@ dns = {
   cert_manager_issuer = "letsencrypt-prod"
   ssl_redirect        = false
   aws = {
-    zone_name             = "aws.example.com"
-    main_record_type      = "CNAME"
-    main_record_value     = "example-alb-123456.eu-central-1.elb.amazonaws.com"
-    main_ttl              = 300
-    wildcard_record_type  = "CNAME"
-    wildcard_record_value = "btp.aws.example.com"
+    zone_name = "aws.example.com"
+    main_ttl  = 300
   }
 }
 
@@ -141,6 +137,9 @@ ingress_tls = {
       controller = {
         service = {
           type = "LoadBalancer"
+          annotations = {
+            "service.beta.kubernetes.io/aws-load-balancer-type" = "nlb"
+          }
         }
         config = {
           "allow-snippet-annotations" = "true"
@@ -172,7 +171,7 @@ oauth = {
     # user_pool_id   = "eu-central-1_xxxxx" # If using existing pool
     # client_id      = "xxxxx"
     # client_secret  = "xxxxx"
-    callback_urls = ["https://btp.aws.example.com/auth/callback"]
+    callback_urls = ["https://btp.aws.example.com/api/auth/callback/cognito"]
   }
 }
 
@@ -187,7 +186,7 @@ secrets = {
 # BTP Platform deployment
 btp = {
   enabled       = true
-  chart         = "oci://harbor.example.com/settlemint/settlemint"
+  chart         = "oci://harbor.settlemint.com/settlemint/settlemint"
   namespace     = "settlemint"
   release_name  = "settlemint-platform"
   chart_version = "v7.32.10"

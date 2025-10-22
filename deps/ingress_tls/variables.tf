@@ -109,6 +109,18 @@ variable "route53_credentials_secret_name" {
   nullable    = true
 }
 
+variable "cluster_name" {
+  description = "Kubernetes cluster identifier used to narrow AWS load balancer lookups."
+  type        = string
+  default     = null
+}
+
+variable "lookup_load_balancer" {
+  description = "Resolve the ingress load balancer DNS name via AWS once the controller is installed."
+  type        = bool
+  default     = false
+}
+
 variable "aws_access_key_id" {
   description = "AWS access key ID for Route53 DNS-01 challenges. When provided alongside aws_secret_access_key, a Kubernetes Secret will be created."
   type        = string
@@ -138,4 +150,16 @@ variable "default_certificate" {
   })
   default  = null
   nullable = true
+}
+
+variable "load_balancer_service_name" {
+  description = "Explicit Kubernetes Service name for the ingress controller when it differs from the chart default."
+  type        = string
+  default     = null
+}
+
+variable "load_balancer_tags" {
+  description = "Additional AWS tag filters applied when resolving the ingress load balancer."
+  type        = map(string)
+  default     = {}
 }

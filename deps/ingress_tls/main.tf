@@ -4,6 +4,32 @@ resource "kubernetes_namespace" "this" {
 }
 
 locals {
+  ingress_release_name = coalesce(var.release_name_nginx, "ingress")
+  ingress_service_name = coalesce(
+    var.load_balancer_service_name,
+    try(var.values_nginx.controller.service.name, null),
+    "${local.ingress_release_name}-ingress-nginx-controller"
+  )
+  ingress_service_tag = format("%s/%s", var.namespace, local.ingress_service_name)
+  ingress_lb_tags = var.lookup_load_balancer ? merge(
+    { "kubernetes.io/service-name" = local.ingress_service_tag },
+    var.cluster_name != null ? { "elbv2.k8s.aws/cluster" = var.cluster_name } : {},
+    var.load_balancer_tags
+  ) : {}
+}
+
+data "kubernetes_service" "ingress" {
+  count = var.lookup_load_balancer ? 1 : 0
+
+  metadata {
+    name      = local.ingress_service_name
+    namespace = var.namespace
+  }
+
+  depends_on = [helm_release.ingress_nginx]
+}
+
+locals {
   cert_manager_ready_seconds = 60
   cert_manager_timeout       = 600
 }
@@ -47,10 +73,10 @@ resource "time_sleep" "wait_for_cert_manager" {
 }
 
 locals {
-  use_dns01               = var.route53_zone_id != null
   route53_secret          = coalesce(var.route53_credentials_secret_name, "route53-credentials")
   route53_creds_provided  = var.aws_access_key_id != null && var.aws_secret_access_key != null
-  manage_route53_secret   = local.use_dns01 && local.route53_creds_provided
+  use_dns01               = local.route53_creds_provided && try(var.route53_zone_id, null) != null
+  manage_route53_secret   = local.route53_creds_provided
   acme_email_explicit_raw = var.acme_email != null ? trimspace(var.acme_email) : ""
   acme_email_explicit_valid = (
     length(local.acme_email_explicit_raw) > 0 &&
@@ -310,4 +336,21 @@ YAML
       kubectl delete certificate ${self.triggers.secret_name} --namespace ${self.triggers.namespace} --ignore-not-found=true 2>/dev/null || true
     EOT
   }
+}
+
+data "aws_lbs" "ingress" {
+  count = var.lookup_load_balancer && length(local.ingress_lb_tags) > 0 ? 1 : 0
+  tags  = local.ingress_lb_tags
+}
+
+data "aws_lb" "ingress" {
+  count = var.lookup_load_balancer && length(local.ingress_lb_tags) > 0 && length(try(tolist(data.aws_lbs.ingress[0].arns), [])) > 0 ? 1 : 0
+  arn   = tolist(data.aws_lbs.ingress[0].arns)[0]
+}
+
+locals {
+  ingress_lb_hostname = var.lookup_load_balancer ? try(data.kubernetes_service.ingress[0].status[0].load_balancer[0].ingress[0].hostname, null) : null
+  ingress_lb_ip       = var.lookup_load_balancer ? try(data.kubernetes_service.ingress[0].status[0].load_balancer[0].ingress[0].ip, null) : null
+  ingress_lb_dns_name = length(data.aws_lb.ingress) > 0 ? data.aws_lb.ingress[0].dns_name : local.ingress_lb_hostname
+  ingress_lb_zone_id  = length(data.aws_lb.ingress) > 0 ? data.aws_lb.ingress[0].zone_id : null
 }
