@@ -1,28 +1,89 @@
-# Operations Guide
+# Operations
 
-These tasks help you keep environments healthy after `terraform apply`. All commands assume you are running from the repository root.
+**Day-2 tasks to keep environments healthy after deployment.**
 
-## Verify a deployment
-- `terraform output post_deploy_message` prints the key endpoints that the stack creates (`outputs.tf:61`). Reach the platform URL and Grafana dashboard first, then confirm Postgres/Redis connectivity if the application team needs them.
-- For scripted checks, use `terraform output -json post_deploy_urls` to parse individual URLs, hostnames, and credentials.
-- When Terraform created the cluster (`k8s_cluster.mode = "aws"`), write the kubeconfig to disk:
+## Verify deployment
+
+**View key endpoints**
+```bash
+terraform output post_deploy_message
+```
+
+**Get all service URLs and credentials (JSON)**
+```bash
+terraform output -json post_deploy_urls
+```
+
+**Export kubeconfig** (when Terraform creates the cluster)
+```bash
+terraform output -json k8s_cluster | jq -r '.value.kubeconfig' > kubeconfig.yaml
+export KUBECONFIG=$PWD/kubeconfig.yaml
+kubectl get nodes
+```
+
+**Check specific services**
+- Platform URL – Main application endpoint
+- Grafana dashboard – Metrics and monitoring
+- Postgres/Redis connectivity – If needed by application team
+
+## Rotate credentials
+
+**Rotate in source system, then reapply**
+```bash
+terraform apply -var-file <profile>.tfvars
+```
+
+Dependent Helm releases pick up the changes automatically.
+
+**Vault dev mode** (`secrets.k8s.dev_mode = true`)
+- Stores root token locally
+- Switch to `dev_mode = false` for production
+- Configure storage backend via `secrets.k8s.values`
+
+**AWS Secrets Manager**
+- Not yet wired to Terraform
+- Pass new values via `TF_VAR_*` environment variables
+
+**Grafana admin password**
+```bash
+export TF_VAR_grafana_admin_password=new_password
+terraform apply -var-file <profile>.tfvars
+```
+
+## Maintain dependencies
+
+**AWS managed services**
+- Adjust maintenance windows in dependency config blocks
+  - `postgres.aws.maintenance_window`
+  - `redis.aws.snapshot_retention_limit`
+- Run `terraform plan` and apply
+
+**Kubernetes mode dependencies**
+- Default: no persistent volumes
+- Enable data retention by overriding Helm values
   ```bash
-  terraform output -json k8s_cluster | jq -r '.value.kubeconfig' > kubeconfig.yaml
-  KUBECONFIG=$PWD/kubeconfig.yaml kubectl get nodes
+  postgres.k8s.values = {
+    persistence = {
+      enabled = true
+      size = "20Gi"
+    }
+  }
   ```
-  For BYO clusters, fall back to the kubeconfig you already manage.
 
-## Rotating credentials
-- Rotate secrets in their source system, then rerun `terraform apply` so dependent Helm releases pick up the changes. Examples:
-  - Vault dev mode (`secrets.k8s.dev_mode = true`) stores the root token locally—switch it off and provide storage configuration in `secrets.k8s.values` before promoting.
-  - AWS Secrets Manager is not wired yet; pass new values through `TF_VAR_*` variables or BYO secrets and reapply.
-  - Grafana admin password comes from `TF_VAR_grafana_admin_password`. Changing the value and running `terraform apply` forces Helm to update the secret.
+**When mixing modes**, ensure security groups and namespaces align
+- Terraform creates namespaces only when `manage_namespace = true`
 
-## Dependency maintenance
-- Managed AWS services expose maintenance settings through the dependency config blocks (e.g., `postgres.aws.maintenance_window`, `redis.aws.snapshot_retention_limit`). Adjust them in tfvars, run `terraform plan`, and apply.
-- Kubernetes mode dependencies ship without persistent volumes by default. If you need data retention, override the Helm values via the `values` map in each dependency block (for example, enable PVCs in `postgres.k8s.values`).
-- When mixing managed and k8s modes, ensure security groups and namespaces remain aligned. Terraform only creates namespaces when `manage_namespace = true` on the module.
+## Clean up
 
-## Cleaning up
-- Always destroy dependencies before tearing down the VPC. Running `terraform destroy -var-file <profile>.tfvars` cleans resources in the safe order defined in `main.tf`.
-- If AWS managed clusters are in use, the `null_resource.cleanup_k8s_loadbalancers` hook (`main.tf:101`) deletes Kubernetes `LoadBalancer` services during destroy to avoid orphaned ENIs. Verify that no extra load balancers remain if you have out-of-band services in the cluster.
+**Destroy in safe order**
+```bash
+terraform destroy -var-file <profile>.tfvars
+```
+
+**Before destroying AWS VPC**
+- Terraform destroys dependencies first (defined in main.tf)
+
+**AWS managed clusters with LoadBalancer services**
+- `null_resource.cleanup_k8s_loadbalancers` (main.tf:101) deletes Kubernetes LoadBalancer services
+- Prevents orphaned ENIs
+- Verify no extra load balancers remain if you have out-of-band services
