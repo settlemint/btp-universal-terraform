@@ -70,7 +70,7 @@ namespaces = {
 postgres = {
   mode = "aws"
   aws = {
-    identifier        = "btp-postgres-oleks"
+    identifier        = "btp-postgres"
     instance_class    = "db.t3.small"
     allocated_storage = 50
     engine_version    = "15.14"
@@ -86,7 +86,7 @@ postgres = {
 redis = {
   mode = "aws"
   aws = {
-    cluster_id     = "btp-redis-oleks"
+    cluster_id     = "btp-redis"
     node_type      = "cache.t3.micro"
     engine_version = "7.0"
     # VPC/subnet/security group IDs are auto-injected from VPC module
