@@ -47,8 +47,8 @@ locals {
     local.dns_ssl_redirect != null ? { "nginx.ingress.kubernetes.io/ssl-redirect" = tostring(local.dns_ssl_redirect) } : {},
     local.dns_ingress_annotations
   )
+  grafana_ingress_host         = format("grafana.%s", local.ingress_host)
   ipfs_ingress_host            = format("ipfs.%s", local.ingress_host)
-  ipfs_ingress_tls_secret_name = format("%s-ipfs-cluster-tls", var.release_name)
   deployment_engine_connection_url = (
     try(trimspace(var.object_storage.bucket), "") != "" ?
     format("s3://%s", trimspace(var.object_storage.bucket)) :
@@ -296,7 +296,7 @@ locals {
     # Storage configuration for platform components
     support = {
       ingress-nginx = {
-        enabled = false # Use cluster-wide ingress-nginx installed separately
+        enabled = true # Use cluster-wide ingress-nginx installed separately
       }
       ipfs-cluster = {
         # IPFS cluster secret must be 64-char hex - passed to subchart as sharedSecret
@@ -313,7 +313,7 @@ locals {
         }
         ingress = {
           enabled     = true
-          className   = try(var.ingress_tls.ingress_class, "nginx")
+          className   = "settlemint-nginx"
           annotations = local.ingress_annotations
           hosts = [{
             host = local.ipfs_ingress_host
@@ -321,10 +321,6 @@ locals {
               path     = "/"
               pathType = "Prefix"
             }]
-          }]
-          tls = [{
-            secretName = local.ipfs_ingress_tls_secret_name
-            hosts      = [local.ipfs_ingress_host]
           }]
         }
       }
@@ -334,17 +330,24 @@ locals {
     observability = {
       # Disable node-exporter to avoid port conflicts (not needed for AWS with external monitoring)
       prometheus-node-exporter = {
-        enabled = false
+        enabled = true
       }
       grafana = merge(
         {
           persistence = {
             storageClassName = "gp2"
+          },
+          ingress = {
+            enabled     = true
+            className   = try(var.ingress_tls.ingress_class, "settlemint-nginx")
+            annotations = local.ingress_annotations
+            hosts       = [local.grafana_ingress_host]
           }
         },
         var.grafana_admin_password != null ? {
           auth = {
-            password = var.grafana_admin_password
+            username     = "admin"
+            password     = var.grafana_admin_password
           }
         } : {}
       )

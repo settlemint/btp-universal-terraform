@@ -70,7 +70,7 @@ namespaces = {
 postgres = {
   mode = "aws"
   aws = {
-    identifier        = "btp-postgres"
+    identifier        = "btp-postgres-oleks"
     instance_class    = "db.t3.small"
     allocated_storage = 50
     engine_version    = "15.14"
@@ -86,7 +86,7 @@ postgres = {
 redis = {
   mode = "aws"
   aws = {
-    cluster_id     = "btp-redis"
+    cluster_id     = "btp-redis-oleks"
     node_type      = "cache.t3.micro"
     engine_version = "7.0"
     # VPC/subnet/security group IDs are auto-injected from VPC module
@@ -149,15 +149,9 @@ ingress_tls = {
   }
 }
 
-# Metrics/Logs - Keep in Kubernetes
+# Metrics/Logs - Disabled for this configuration
 metrics_logs = {
-  mode = "k8s"
-  k8s = {
-    release_name_kps         = "kps"
-    release_name_loki        = "loki"
-    kp_stack_chart_version   = "55.8.2"
-    loki_stack_chart_version = "2.9.11"
-  }
+  mode = "disabled"
 }
 
 # OAuth via AWS Cognito
