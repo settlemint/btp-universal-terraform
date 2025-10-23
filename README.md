@@ -68,42 +68,28 @@ Need more guidance? Follow `docs/getting-started.md` for prerequisites and verif
 
 To deploy the SettleMint platform itself, enable the `/btp` module in your tfvars (see the `btp` block in `variables.tf`) and follow the notes in `docs/configuration.md`.
 
-### Using a .env file for registry login
+### Managing secrets with environment variables
 
-Place your OCI registry credentials in a `.env` file (or copy `.env.example`). If you use 1Password, rely on secret references and run Terraform through `op run`:
+Terraform requires sensitive credentials (passwords, API keys, license details) to provision dependencies. Supply these via environment variables—never commit them to version control.
 
-```
-SETTLEMINT_REGISTRY=registry.example.com
-SETTLEMINT_REGISTRY_USERNAME=op://btp-universal-terraform/License/username
-SETTLEMINT_REGISTRY_PASSWORD=op://btp-universal-terraform/License/password
-```
-
-With 1Password references, load the env at runtime:
+**Quick start:**
 
 ```bash
-# If you have multiple 1Password accounts, pass the account shorthand
-# List accounts with: op account list
-op run --account <your-account> --env-file=.env -- terraform apply -var-file examples/k8s-config.tfvars
+# Copy the example and fill in your values
+cp .env.example .env
+
+# Load variables and apply
+set -a && source .env && set +a
+terraform apply -var-file examples/k8s-config.tfvars
 ```
 
-### Drive dependency credentials via .env
+The `.env.example` file lists all required variables with the `TF_VAR_` prefix that Terraform reads automatically.
 
-Provide dependency credentials explicitly via environment variables (Terraform reads `TF_VAR_*` automatically):
+**Using a password manager:**
 
-```
-TF_VAR_postgres_password=
-TF_VAR_redis_password=
-TF_VAR_object_storage_access_key=
-TF_VAR_object_storage_secret_key=
-TF_VAR_grafana_admin_password=
-TF_VAR_oauth_admin_password=
-TF_VAR_secrets_dev_token=
-TF_VAR_jwt_signing_key=
-TF_VAR_ipfs_cluster_secret=
-TF_VAR_state_encryption_key=
-```
+Integrate with 1Password, AWS Secrets Manager, HashiCorp Vault, or other tools to inject secrets at runtime. See `docs/configuration.md` for detailed examples of each method.
 
-See the “Credentials and secret inputs” section of `variables.tf` for the full list and validation rules.
+For a complete guide on environment variable handling, credential requirements, and password manager integration, refer to the "Secrets and credentials" section in `docs/configuration.md`.
 
 ## Typical development workflow
 
