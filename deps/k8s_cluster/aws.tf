@@ -123,10 +123,93 @@ resource "aws_security_group_rule" "eks_cluster_https_ingress" {
   source_security_group_id = aws_security_group.eks_cluster[0].id
 }
 # KMS key for secrets encryption
+data "aws_caller_identity" "current" {
+  count = var.mode == "aws" && var.aws.enable_secrets_encryption && var.aws.kms_key_arn == null ? 1 : 0
+}
+
+data "aws_iam_policy_document" "eks_kms" {
+  count = var.mode == "aws" && var.aws.enable_secrets_encryption && var.aws.kms_key_arn == null ? 1 : 0
+
+  statement {
+    sid     = "EnableRootPermissions"
+    actions = ["kms:*"]
+
+    principals {
+      type        = "AWS"
+      identifiers = ["arn:aws:iam::${data.aws_caller_identity.current[0].account_id}:root"]
+    }
+
+    resources = ["*"]
+  }
+
+  statement {
+    sid = "AllowEKSViaService"
+    actions = [
+      "kms:CreateGrant",
+      "kms:DescribeKey",
+      "kms:ListGrants"
+    ]
+
+    principals {
+      type        = "Service"
+      identifiers = ["eks.amazonaws.com"]
+    }
+
+    resources = ["*"]
+
+    condition {
+      test     = "StringEquals"
+      variable = "kms:ViaService"
+      values   = [format("eks.%s.amazonaws.com", var.aws.region)]
+    }
+  }
+
+  statement {
+    sid = "AllowClusterRoleEncryption"
+    actions = [
+      "kms:DescribeKey",
+      "kms:Encrypt",
+      "kms:Decrypt",
+      "kms:ReEncrypt*",
+      "kms:GenerateDataKey*"
+    ]
+
+    principals {
+      type        = "AWS"
+      identifiers = [aws_iam_role.eks_cluster[0].arn]
+    }
+
+    resources = ["*"]
+  }
+
+  statement {
+    sid = "AllowClusterRoleGrants"
+    actions = [
+      "kms:CreateGrant",
+      "kms:ListGrants",
+      "kms:RevokeGrant"
+    ]
+
+    principals {
+      type        = "AWS"
+      identifiers = [aws_iam_role.eks_cluster[0].arn]
+    }
+
+    resources = ["*"]
+
+    condition {
+      test     = "Bool"
+      variable = "kms:GrantIsForAWSResource"
+      values   = ["true"]
+    }
+  }
+}
+
 resource "aws_kms_key" "eks" {
   count               = var.mode == "aws" && var.aws.enable_secrets_encryption && var.aws.kms_key_arn == null ? 1 : 0
   description         = "KMS key for EKS cluster secrets encryption"
   enable_key_rotation = true
+  policy              = data.aws_iam_policy_document.eks_kms[0].json
 
   tags = merge(
     {
@@ -253,6 +336,19 @@ resource "aws_iam_role_policy_attachment" "eks_container_registry_policy" {
   role       = aws_iam_role.eks_node_group[0].name
 }
 
+# Allow IAM propagation before EKS creates managed node groups.
+resource "time_sleep" "wait_for_node_role" {
+  count           = var.mode == "aws" ? 1 : 0
+  create_duration = "20s"
+
+  depends_on = [
+    aws_iam_role.eks_node_group,
+    aws_iam_role_policy_attachment.eks_worker_node_policy,
+    aws_iam_role_policy_attachment.eks_cni_policy,
+    aws_iam_role_policy_attachment.eks_container_registry_policy,
+  ]
+}
+
 # EBS CSI Driver Policy is now attached via IRSA role, not node role
 
 # EKS Node Groups
@@ -298,11 +394,7 @@ resource "aws_eks_node_group" "main" {
     var.aws.tags
   )
 
-  depends_on = [
-    aws_iam_role_policy_attachment.eks_worker_node_policy,
-    aws_iam_role_policy_attachment.eks_cni_policy,
-    aws_iam_role_policy_attachment.eks_container_registry_policy,
-  ]
+  depends_on = [time_sleep.wait_for_node_role]
 }
 
 # EKS Addons

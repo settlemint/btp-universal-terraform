@@ -149,15 +149,9 @@ ingress_tls = {
   }
 }
 
-# Metrics/Logs - Keep in Kubernetes
+# Metrics/Logs - Disabled for this configuration
 metrics_logs = {
-  mode = "k8s"
-  k8s = {
-    release_name_kps         = "kps"
-    release_name_loki        = "loki"
-    kp_stack_chart_version   = "55.8.2"
-    loki_stack_chart_version = "2.9.11"
-  }
+  mode = "disabled"
 }
 
 # OAuth via AWS Cognito
