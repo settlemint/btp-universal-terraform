@@ -358,6 +358,37 @@ locals {
           }
         }
       }
+      loki = {
+        enabled = true
+        singleBinary = {
+          persistence = {
+            storageClass = "gp2"
+          }
+          resources = {
+            requests = {
+              cpu = "500m"
+              memory = "1Gi"
+            }
+            limits = {
+              cpu = "1"
+              memory = "2Gi"
+            }
+          }
+        }
+         chunksCache = {
+          resources = {
+            requests = {
+              cpu = "100m"
+              memory = "1Gi"
+            }
+            limits = {
+              cpu = "1"
+              memory = "2Gi"
+            }
+          }
+          allocatedMemory = 1024
+         }
+      }
     }
 
     internal = {
