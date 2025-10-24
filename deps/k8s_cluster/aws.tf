@@ -336,6 +336,19 @@ resource "aws_iam_role_policy_attachment" "eks_container_registry_policy" {
   role       = aws_iam_role.eks_node_group[0].name
 }
 
+# Allow IAM propagation before EKS creates managed node groups.
+resource "time_sleep" "wait_for_node_role" {
+  count           = var.mode == "aws" ? 1 : 0
+  create_duration = "20s"
+
+  depends_on = [
+    aws_iam_role.eks_node_group,
+    aws_iam_role_policy_attachment.eks_worker_node_policy,
+    aws_iam_role_policy_attachment.eks_cni_policy,
+    aws_iam_role_policy_attachment.eks_container_registry_policy,
+  ]
+}
+
 # EBS CSI Driver Policy is now attached via IRSA role, not node role
 
 # EKS Node Groups
@@ -381,11 +394,7 @@ resource "aws_eks_node_group" "main" {
     var.aws.tags
   )
 
-  depends_on = [
-    aws_iam_role_policy_attachment.eks_worker_node_policy,
-    aws_iam_role_policy_attachment.eks_cni_policy,
-    aws_iam_role_policy_attachment.eks_container_registry_policy,
-  ]
+  depends_on = [time_sleep.wait_for_node_role]
 }
 
 # EKS Addons
