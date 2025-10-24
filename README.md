@@ -29,11 +29,11 @@ The SettleMint BTP (Blockchain Technology Platform) Universal Terraform reposito
 SettleMint BTP is a comprehensive blockchain development platform that provides tools and services for building, deploying, and managing blockchain applications. It includes features like smart contract development, API management, monitoring, and integration capabilities.
 
 **Key Benefits:**
-- 🚀 **One-click deployment** across AWS, Azure, GCP, or any Kubernetes cluster
-- 🔧 **Flexible dependency management** - choose between managed cloud services, Kubernetes-native deployments, or bring-your-own solutions
-- 📊 **Built-in observability** with Prometheus, Grafana, and Loki
-- 🔐 **Enterprise security** with OAuth integration, secrets management, and TLS encryption
-- 📈 **Scalable architecture** designed for production workloads
+- **One-click deployment** across AWS, Azure, GCP, or any Kubernetes cluster
+- **Flexible dependency management** - choose between managed cloud services, Kubernetes-native deployments, or bring-your-own solutions
+- **Built-in observability** with Prometheus, Grafana, and Loki
+- **Enterprise security** with OAuth integration, secrets management, and TLS encryption
+- **Scalable architecture** designed for production workloads
 
 This repository provides a consistent Terraform flow to provision BTP platform dependencies and install the BTP Helm chart. Use the same module to deploy to AWS, Azure, and GCP or any existing Kubernetes cluster. Each dependency can be provided via a managed cloud service, installed inside Kubernetes (Helm), or wired to your own (BYO) endpoints.
 
@@ -41,11 +41,11 @@ For deeper guidance, dive into the in-repo docs starting at [`docs/README.md`](.
 
 ### Key Features
 
-- 🧭 Unified module layout for dependencies with three modes: k8s (Helm) | managed (cloud) | byo (external)
-- 🪄 Consistent `-var-file` based configuration across environments
-- 🔐 Secrets flow through `TF_VAR_*` inputs, and Terraform marks sensitive outputs automatically
-- 📈 Observability stack via kube-prometheus-stack and Loki
-- 📚 Maintained docs under `docs/` covering configuration, operations, and troubleshooting
+- Unified module layout for dependencies with three modes: k8s (Helm) | managed (cloud) | byo (external)
+- Consistent `-var-file` based configuration across environments
+- Secrets flow through `TF_VAR_*` inputs, and Terraform marks sensitive outputs automatically
+- Observability stack via kube-prometheus-stack and Loki
+- Maintained docs under `docs/` covering configuration, operations, and troubleshooting
 
 ## Prerequisites
 
@@ -173,7 +173,7 @@ base_domain = "yourdomain.com"
 vpc = {
   aws = {
     vpc_name = "btp-vpc-yourname"
-    region   = "us-east-1"  # Change to your preferred AWS region
+    region   = "eu-central-1"  # Change to your preferred AWS region
   }
 }
 
@@ -202,7 +202,7 @@ oauth = {
 ```
 
 **Optional Changes:**
-- **Region**: Change `us-east-1` to your preferred AWS region
+- **Region**: Change `eu-central-1` to your preferred AWS region
 - **Instance Types**: Modify `t3.medium` to `t3.large` or `t3.xlarge` for higher performance
 - **Node Count**: Adjust `desired_size`, `min_size`, `max_size` based on your needs
 - **Database Size**: Change `db.t3.small` to larger instance for production
