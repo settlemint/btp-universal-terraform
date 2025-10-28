@@ -47,8 +47,8 @@ locals {
     local.dns_ssl_redirect != null ? { "nginx.ingress.kubernetes.io/ssl-redirect" = tostring(local.dns_ssl_redirect) } : {},
     local.dns_ingress_annotations
   )
-  grafana_ingress_host         = format("grafana.%s", local.ingress_host)
-  ipfs_ingress_host            = format("ipfs.%s", local.ingress_host)
+  grafana_ingress_host = format("grafana.%s", local.ingress_host)
+  ipfs_ingress_host    = format("ipfs.%s", local.ingress_host)
   deployment_engine_connection_url = (
     try(trimspace(var.object_storage.bucket), "") != "" ?
     format("s3://%s", trimspace(var.object_storage.bucket)) :
@@ -346,8 +346,8 @@ locals {
         },
         var.grafana_admin_password != null ? {
           auth = {
-            username     = "admin"
-            password     = var.grafana_admin_password
+            username = "admin"
+            password = var.grafana_admin_password
           }
         } : {}
       )
@@ -366,28 +366,28 @@ locals {
           }
           resources = {
             requests = {
-              cpu = "500m"
+              cpu    = "500m"
               memory = "1Gi"
             }
             limits = {
-              cpu = "1"
+              cpu    = "1"
               memory = "2Gi"
             }
           }
         }
-         chunksCache = {
+        chunksCache = {
           resources = {
             requests = {
-              cpu = "100m"
+              cpu    = "100m"
               memory = "1Gi"
             }
             limits = {
-              cpu = "1"
+              cpu    = "1"
               memory = "2Gi"
             }
           }
           allocatedMemory = 1024
-         }
+        }
       }
     }
 
