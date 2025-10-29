@@ -105,13 +105,35 @@ variable "azure" {
 # GCP-specific variables
 variable "gcp" {
   type = object({
-    instance_name    = optional(string, "btp-postgres")
-    database_version = optional(string, "POSTGRES_15")
-    region           = optional(string, "us-central1")
-    tier             = optional(string, "db-f1-micro")
-    database         = optional(string, "btp")
-    username         = optional(string, "postgres")
-    password         = optional(string)
+    project_id                     = optional(string)
+    instance_name                  = optional(string, "btp-postgres")
+    database_version               = optional(string, "POSTGRES_15")
+    region                         = optional(string, "us-central1")
+    tier                           = optional(string, "db-f1-micro")
+    availability_type              = optional(string, "ZONAL") # REGIONAL for HA
+    disk_type                      = optional(string, "PD_SSD")
+    disk_size                      = optional(number, 10)
+    disk_autoresize                = optional(bool, true)
+    database                       = optional(string, "btp")
+    username                       = optional(string, "postgres")
+    password                       = optional(string)
+    backup_enabled                 = optional(bool, true)
+    backup_start_time              = optional(string, "03:00")
+    point_in_time_recovery_enabled = optional(bool, true)
+    transaction_log_retention_days = optional(number, 7)
+    retained_backups               = optional(number, 7)
+    ipv4_enabled                   = optional(bool, true)
+    private_network                = optional(string)
+    require_ssl                    = optional(bool, false)
+    authorized_networks = optional(list(object({
+      name  = string
+      value = string
+    })), [])
+    maintenance_window_day  = optional(number, 1) # 1 = Monday
+    maintenance_window_hour = optional(number, 3)
+    query_insights_enabled  = optional(bool, true)
+    max_connections         = optional(string, "100")
+    deletion_protection     = optional(bool, false)
   })
   default     = {}
   description = "GCP Cloud SQL configuration"

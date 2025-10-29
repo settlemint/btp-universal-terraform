@@ -52,6 +52,7 @@ namespaces = {
 postgres = {
   mode = "gcp"
   gcp = {
+    project_id       = "my-gcp-project"
     instance_name    = "btp-postgres"
     database_version = "POSTGRES_15"
     region           = "us-central1"
@@ -66,6 +67,7 @@ postgres = {
 redis = {
   mode = "gcp"
   gcp = {
+    project_id     = "my-gcp-project"
     instance_name  = "btp-redis"
     tier           = "BASIC"
     memory_size_gb = 1
@@ -78,11 +80,11 @@ redis = {
 object_storage = {
   mode = "gcp"
   gcp = {
-    bucket_name   = "btp-artifacts"
+    project_id    = "my-gcp-project"
+    bucket_name   = null # Auto-generated from base_domain
     location      = "US"
     storage_class = "STANDARD"
-    # access_key    = "GOOGXXXXX"  # Use HMAC keys for S3-compatible access
-    # secret_key    = "secret"
+    # access_key and secret_key will be auto-generated via HMAC
   }
 }
 
@@ -117,6 +119,19 @@ oauth = {
     # client_id     = "xxxxx"
     # client_secret = "xxxxx"
     callback_urls = ["https://btp.example.com/auth/callback"]
+  }
+}
+
+# DNS via GCP Cloud DNS
+dns = {
+  mode = "gcp"
+  gcp = {
+    project              = "my-gcp-project"
+    managed_zone         = "btp-zone"       # Name of your Cloud DNS managed zone
+    main_record_value    = "35.123.456.789" # Load balancer IP (get from ingress after deployment)
+    main_record_type     = "A"
+    wildcard_record_type = "CNAME"
+    # wildcard_record_value defaults to base_domain
   }
 }
 

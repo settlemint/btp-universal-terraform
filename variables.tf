@@ -484,24 +484,26 @@ variable "redis_password" {
 }
 
 variable "object_storage_access_key" {
-  description = "MinIO/S3 access key (rootUser). Must be provided via TF_VAR_object_storage_access_key."
+  description = "MinIO/S3 access key (rootUser). Must be provided via TF_VAR_object_storage_access_key. Optional for GCP (auto-generated via HMAC)."
   type        = string
   sensitive   = true
+  default     = null
 
   validation {
-    condition     = length(var.object_storage_access_key) >= 3
-    error_message = "Object storage access key must be at least 3 characters."
+    condition     = var.object_storage_access_key == null || length(var.object_storage_access_key) >= 3
+    error_message = "Object storage access key must be at least 3 characters when provided."
   }
 }
 
 variable "object_storage_secret_key" {
-  description = "MinIO/S3 secret key (rootPassword). Must be provided via TF_VAR_object_storage_secret_key."
+  description = "MinIO/S3 secret key (rootPassword). Must be provided via TF_VAR_object_storage_secret_key. Optional for GCP (auto-generated via HMAC)."
   type        = string
   sensitive   = true
+  default     = null
 
   validation {
-    condition     = length(var.object_storage_secret_key) >= 20
-    error_message = "Object storage secret key must be at least 20 characters for security."
+    condition     = var.object_storage_secret_key == null || length(var.object_storage_secret_key) >= 20
+    error_message = "Object storage secret key must be at least 20 characters for security when provided."
   }
 }
 

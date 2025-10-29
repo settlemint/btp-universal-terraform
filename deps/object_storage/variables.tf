@@ -111,11 +111,37 @@ variable "azure" {
 # GCP-specific variables
 variable "gcp" {
   type = object({
-    bucket_name   = optional(string, "btp-artifacts")
-    location      = optional(string, "US")
-    storage_class = optional(string, "STANDARD")
-    access_key    = optional(string)
-    secret_key    = optional(string)
+    project_id                  = optional(string)
+    bucket_name                 = optional(string)
+    location                    = optional(string, "US")
+    storage_class               = optional(string, "STANDARD") # STANDARD, NEARLINE, COLDLINE, ARCHIVE
+    uniform_bucket_level_access = optional(bool, true)
+    versioning_enabled          = optional(bool, false)
+    force_destroy               = optional(bool, true)
+    kms_key_name                = optional(string)
+    manage_bucket               = optional(bool, true)
+    access_key                  = optional(string)
+    secret_key                  = optional(string)
+    lifecycle_rules = optional(list(object({
+      action = object({
+        type          = string
+        storage_class = optional(string)
+      })
+      condition = object({
+        age                   = optional(number)
+        created_before        = optional(string)
+        with_state            = optional(string)
+        matches_storage_class = optional(list(string))
+        num_newer_versions    = optional(number)
+      })
+    })), [])
+    cors_rules = optional(list(object({
+      origin          = list(string)
+      method          = list(string)
+      response_header = list(string)
+      max_age_seconds = number
+    })), [])
+    labels = optional(map(string), {})
   })
   default     = {}
   description = "GCP Cloud Storage configuration"
