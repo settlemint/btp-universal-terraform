@@ -15,7 +15,7 @@ variable "kp_stack_chart_version" {
 
 variable "loki_stack_chart_version" {
   type    = string
-  default = "2.10.2"
+  default = "2.10.3"
 }
 
 variable "release_name_kps" {
