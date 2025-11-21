@@ -4,6 +4,12 @@ variable "chart" {
   default     = "oci://harbor.example.com/settlemint/settlemint"
 }
 
+variable "storage_class" {
+  description = "Storage class to use for persistent volumes (gp2 for AWS, standard-rwo for GCP, managed-premium for Azure)"
+  type        = string
+  default     = "gp2"
+}
+
 variable "chart_version" {
   type    = string
   default = ""

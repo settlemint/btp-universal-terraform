@@ -103,8 +103,11 @@ resource "google_sql_user" "user" {
 
 locals {
   # Connection details for Cloud SQL
-  gcp_host = var.mode == "gcp" ? google_sql_database_instance.postgres[0].private_ip_address : null
-  # Use private IP if available, otherwise public IP
+  # Use private IP if available, otherwise fall back to public IP
+  gcp_host = var.mode == "gcp" ? coalesce(
+    google_sql_database_instance.postgres[0].private_ip_address,
+    google_sql_database_instance.postgres[0].public_ip_address
+  ) : null
   gcp_connection_name = var.mode == "gcp" ? google_sql_database_instance.postgres[0].connection_name : null
   gcp_port            = var.mode == "gcp" ? 5432 : null
   gcp_user            = var.mode == "gcp" ? google_sql_user.user[0].name : null

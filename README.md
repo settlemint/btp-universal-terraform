@@ -101,6 +101,103 @@ gcloud services enable dns.googleapis.com               # Cloud DNS
 gcloud services enable servicenetworking.googleapis.com # Private networking
 ```
 
+**Required GCP IAM Roles for Terraform Service Account:**
+
+The service account used by Terraform needs the following roles. You can create a service account and grant these permissions:
+
+```bash
+# Create service account
+gcloud iam service-accounts create btp-universal-terraform \
+  --display-name="BTP Universal Terraform Deployer" \
+  --project=YOUR_PROJECT_ID
+
+# Grant required roles
+PROJECT_ID="YOUR_PROJECT_ID"
+SA_EMAIL="btp-universal-terraform@${PROJECT_ID}.iam.gserviceaccount.com"
+
+# Core infrastructure roles
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member="serviceAccount:${SA_EMAIL}" \
+  --role="roles/compute.admin"                    # VPC, networks, firewalls, NAT
+
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member="serviceAccount:${SA_EMAIL}" \
+  --role="roles/container.admin"                  # GKE clusters and node pools
+
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member="serviceAccount:${SA_EMAIL}" \
+  --role="roles/cloudsql.admin"                   # Cloud SQL PostgreSQL instances
+
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member="serviceAccount:${SA_EMAIL}" \
+  --role="roles/redis.admin"                      # Memorystore Redis instances
+
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member="serviceAccount:${SA_EMAIL}" \
+  --role="roles/storage.admin"                    # Cloud Storage buckets
+
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member="serviceAccount:${SA_EMAIL}" \
+  --role="roles/dns.admin"                        # Cloud DNS zones and records
+
+# IAM and security roles
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member="serviceAccount:${SA_EMAIL}" \
+  --role="roles/iam.serviceAccountAdmin"          # Create/manage service accounts
+
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member="serviceAccount:${SA_EMAIL}" \
+  --role="roles/iam.serviceAccountTokenCreator"   # Create HMAC keys for storage
+
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member="serviceAccount:${SA_EMAIL}" \
+  --role="roles/resourcemanager.projectIamAdmin"  # Manage IAM bindings
+
+# Grant service account user role on compute default service account
+gcloud iam service-accounts add-iam-policy-binding \
+  $(gcloud projects describe $PROJECT_ID --format="value(projectNumber)")-compute@developer.gserviceaccount.com \
+  --member="serviceAccount:${SA_EMAIL}" \
+  --role="roles/iam.serviceAccountUser" \
+  --project=$PROJECT_ID
+
+# Create and download JSON key
+gcloud iam service-accounts keys create ~/btp-terraform-gcp-key.json \
+  --iam-account="${SA_EMAIL}"
+
+echo "✓ Service account created with all required permissions"
+echo "✓ Key saved to ~/btp-terraform-gcp-key.json"
+echo ""
+echo "Store this key securely (e.g., in 1Password) and set GOOGLE_CLOUD_KEYFILE_JSON in your .env file"
+```
+
+**Running with User Credentials (Alternative to Service Account):**
+
+If you're running Terraform with your own user credentials (via `gcloud auth application-default login`) instead of a service account, you need `iam.serviceAccountUser` permission on the GKE node service account that Terraform creates. After the first `terraform apply` fails with a permission error, run:
+
+```bash
+gcloud iam service-accounts add-iam-policy-binding \
+  btp-gke-nodes@YOUR_PROJECT_ID.iam.gserviceaccount.com \
+  --member="user:YOUR_EMAIL@example.com" \
+  --role="roles/iam.serviceAccountUser"
+```
+
+Then re-run `terraform apply`.
+
+**Role Purpose Breakdown:**
+
+| Role | Purpose | Required For |
+|------|---------|-------------|
+| `roles/compute.admin` | Manage VPC networks, subnets, firewalls, Cloud NAT | GKE networking, custom VPCs |
+| `roles/container.admin` | Create and manage GKE clusters, node pools, and configurations | GKE cluster deployment |
+| `roles/cloudsql.admin` | Create and manage Cloud SQL instances, databases, and users | PostgreSQL database |
+| `roles/redis.admin` | Create and manage Memorystore Redis instances | Redis cache |
+| `roles/storage.admin` | Create buckets, manage objects, create HMAC keys | Object storage for artifacts |
+| `roles/dns.admin` | Create DNS zones and manage DNS records | Domain management (optional) |
+| `roles/iam.serviceAccountAdmin` | Create service accounts for GKE nodes and storage access | GKE node service accounts |
+| `roles/iam.serviceAccountTokenCreator` | Generate HMAC keys for Cloud Storage S3-compatible access | Storage credentials |
+| `roles/resourcemanager.projectIamAdmin` | Grant IAM roles to service accounts | GKE node permissions |
+| `roles/iam.serviceAccountUser` (on compute SA) | Allow using the default compute service account | GKE cluster creation |
+
 ## Step-by-Step Deployment Guide
 
 This repository supports deployment to **AWS**, **GCP**, and **Azure**. Choose your target platform:

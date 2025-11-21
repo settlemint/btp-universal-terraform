@@ -63,13 +63,17 @@ resource "google_container_cluster" "main" {
   subnetwork = var.gcp.subnetwork
 
   # IP allocation policy for pods and services
+  # Note: Can use either named secondary ranges OR CIDR blocks, not both
   dynamic "ip_allocation_policy" {
     for_each = var.gcp.ip_allocation_policy != null ? [var.gcp.ip_allocation_policy] : []
     content {
-      cluster_secondary_range_name  = lookup(ip_allocation_policy.value, "cluster_secondary_range_name", null)
-      services_secondary_range_name = lookup(ip_allocation_policy.value, "services_secondary_range_name", null)
-      cluster_ipv4_cidr_block       = lookup(ip_allocation_policy.value, "cluster_ipv4_cidr_block", null)
-      services_ipv4_cidr_block      = lookup(ip_allocation_policy.value, "services_ipv4_cidr_block", null)
+      # Use named secondary ranges (if specified and CIDR blocks are not)
+      cluster_secondary_range_name  = try(ip_allocation_policy.value.cluster_ipv4_cidr_block, null) == null ? lookup(ip_allocation_policy.value, "cluster_secondary_range_name", null) : null
+      services_secondary_range_name = try(ip_allocation_policy.value.services_ipv4_cidr_block, null) == null ? lookup(ip_allocation_policy.value, "services_secondary_range_name", null) : null
+
+      # Use CIDR blocks (if specified, takes precedence over named ranges)
+      cluster_ipv4_cidr_block  = lookup(ip_allocation_policy.value, "cluster_ipv4_cidr_block", null)
+      services_ipv4_cidr_block = lookup(ip_allocation_policy.value, "services_ipv4_cidr_block", null)
     }
   }
 
@@ -139,6 +143,9 @@ resource "google_container_cluster" "main" {
 
   # Enable shielded nodes
   enable_shielded_nodes = true
+
+  # Disable deletion protection to allow destroy
+  deletion_protection = false
 
   lifecycle {
     ignore_changes = [
@@ -257,20 +264,10 @@ locals {
       name = google_container_cluster.main[0].name
       user = {
         exec = {
-          apiVersion = "client.authentication.k8s.io/v1beta1"
-          command    = "gcloud"
-          args = [
-            "container",
-            "clusters",
-            "get-credentials",
-            google_container_cluster.main[0].name,
-            "--region",
-            var.gcp.region,
-            "--project",
-            var.gcp.project_id
-          ]
+          apiVersion         = "client.authentication.k8s.io/v1beta1"
+          command            = "gke-gcloud-auth-plugin"
           interactiveMode    = "Never"
-          provideClusterInfo = true
+          provideClusterInfo = false
         }
       }
     }]
@@ -278,16 +275,7 @@ locals {
 
   gcp_provider_exec = var.mode == "gcp" ? [{
     api_version = "client.authentication.k8s.io/v1beta1"
-    command     = "gcloud"
-    args = [
-      "container",
-      "clusters",
-      "get-credentials",
-      google_container_cluster.main[0].name,
-      "--region",
-      var.gcp.region,
-      "--project",
-      var.gcp.project_id
-    ]
+    command     = "gke-gcloud-auth-plugin"
+    args        = []
   }] : []
 }

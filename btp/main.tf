@@ -264,7 +264,7 @@ locals {
               }
             }
             storage = {
-              storageClass = "gp2"
+              storageClass = var.storage_class
             }
             ingress = {
               ingressClass = try(var.ingress_tls.ingress_class, "nginx")
@@ -303,12 +303,12 @@ locals {
         sharedSecret = local.ipfs_cluster_secret
         cluster = {
           storage = {
-            storageClassName = "gp2"
+            storageClassName = var.storage_class
           }
         }
         ipfs = {
           storage = {
-            storageClassName = "gp2"
+            storageClassName = var.storage_class
           }
         }
         ingress = {
@@ -328,14 +328,14 @@ locals {
 
     # Observability storage - both Grafana and Victoria Metrics
     observability = {
-      # Disable node-exporter to avoid port conflicts (not needed for AWS with external monitoring)
+      # Disable node-exporter to avoid port conflicts (kps already provides one in btp-deps)
       prometheus-node-exporter = {
-        enabled = true
+        enabled = false
       }
       grafana = merge(
         {
           persistence = {
-            storageClassName = "gp2"
+            storageClassName = var.storage_class
           },
           ingress = {
             enabled     = true
@@ -354,7 +354,7 @@ locals {
       victoria-metrics-single = {
         server = {
           persistentVolume = {
-            storageClassName = "gp2" # Correct field name from the chart's values.yaml
+            storageClassName = var.storage_class # Correct field name from the chart's values.yaml
           }
         }
       }
@@ -362,7 +362,7 @@ locals {
         enabled = true
         singleBinary = {
           persistence = {
-            storageClass = "gp2"
+            storageClass = var.storage_class
           }
           resources = {
             requests = {
