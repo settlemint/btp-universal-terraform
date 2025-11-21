@@ -47,8 +47,8 @@ locals {
     local.dns_ssl_redirect != null ? { "nginx.ingress.kubernetes.io/ssl-redirect" = tostring(local.dns_ssl_redirect) } : {},
     local.dns_ingress_annotations
   )
-  grafana_ingress_host         = format("grafana.%s", local.ingress_host)
-  ipfs_ingress_host            = format("ipfs.%s", local.ingress_host)
+  grafana_ingress_host = format("grafana.%s", local.ingress_host)
+  ipfs_ingress_host    = format("ipfs.%s", local.ingress_host)
   deployment_engine_connection_url = (
     try(trimspace(var.object_storage.bucket), "") != "" ?
     format("s3://%s", trimspace(var.object_storage.bucket)) :
@@ -264,7 +264,7 @@ locals {
               }
             }
             storage = {
-              storageClass = "gp2"
+              storageClass = var.storage_class
             }
             ingress = {
               ingressClass = try(var.ingress_tls.ingress_class, "nginx")
@@ -303,12 +303,12 @@ locals {
         sharedSecret = local.ipfs_cluster_secret
         cluster = {
           storage = {
-            storageClassName = "gp2"
+            storageClassName = var.storage_class
           }
         }
         ipfs = {
           storage = {
-            storageClassName = "gp2"
+            storageClassName = var.storage_class
           }
         }
         ingress = {
@@ -328,14 +328,14 @@ locals {
 
     # Observability storage - both Grafana and Victoria Metrics
     observability = {
-      # Disable node-exporter to avoid port conflicts (not needed for AWS with external monitoring)
+      # Disable node-exporter to avoid port conflicts (kps already provides one in btp-deps)
       prometheus-node-exporter = {
-        enabled = true
+        enabled = false
       }
       grafana = merge(
         {
           persistence = {
-            storageClassName = "gp2"
+            storageClassName = var.storage_class
           },
           ingress = {
             enabled     = true
@@ -346,15 +346,15 @@ locals {
         },
         var.grafana_admin_password != null ? {
           auth = {
-            username     = "admin"
-            password     = var.grafana_admin_password
+            username = "admin"
+            password = var.grafana_admin_password
           }
         } : {}
       )
       victoria-metrics-single = {
         server = {
           persistentVolume = {
-            storageClassName = "gp2" # Correct field name from the chart's values.yaml
+            storageClassName = var.storage_class # Correct field name from the chart's values.yaml
           }
         }
       }
@@ -362,32 +362,32 @@ locals {
         enabled = true
         singleBinary = {
           persistence = {
-            storageClass = "gp2"
+            storageClass = var.storage_class
           }
           resources = {
             requests = {
-              cpu = "500m"
+              cpu    = "500m"
               memory = "1Gi"
             }
             limits = {
-              cpu = "1"
+              cpu    = "1"
               memory = "2Gi"
             }
           }
         }
-         chunksCache = {
+        chunksCache = {
           resources = {
             requests = {
-              cpu = "100m"
+              cpu    = "100m"
               memory = "1Gi"
             }
             limits = {
-              cpu = "1"
+              cpu    = "1"
               memory = "2Gi"
             }
           }
           allocatedMemory = 1024
-         }
+        }
       }
     }
 

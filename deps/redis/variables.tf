@@ -94,13 +94,24 @@ variable "azure" {
 # GCP-specific variables
 variable "gcp" {
   type = object({
+    project_id              = optional(string)
     instance_name           = optional(string, "btp-redis")
-    tier                    = optional(string, "BASIC")
+    tier                    = optional(string, "BASIC") # BASIC or STANDARD_HA
     memory_size_gb          = optional(number, 1)
     region                  = optional(string, "us-central1")
     redis_version           = optional(string, "REDIS_7_0")
+    display_name            = optional(string)
+    reserved_ip_range       = optional(string)
+    authorized_network      = optional(string)
+    auth_enabled            = optional(bool, true)
     auth_string             = optional(string)
-    transit_encryption_mode = optional(string, "DISABLED")
+    transit_encryption_mode = optional(string, "DISABLED") # DISABLED or SERVER_AUTHENTICATION
+    persistence_mode        = optional(string, "RDB")      # RDB or DISABLED (STANDARD_HA only)
+    rdb_snapshot_period     = optional(string, "ONE_HOUR") # STANDARD_HA only
+    maintenance_window_day  = optional(string, "MONDAY")
+    maintenance_window_hour = optional(number, 3)
+    redis_configs           = optional(map(string), {})
+    labels                  = optional(map(string), {})
   })
   default     = {}
   description = "GCP Memorystore configuration"

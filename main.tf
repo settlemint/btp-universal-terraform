@@ -344,6 +344,9 @@ module "btp" {
 
   base_domain = var.base_domain
 
+  # Storage class based on platform
+  storage_class = var.platform == "gcp" ? "standard-rwo" : var.platform == "azure" ? "managed-premium" : "gp2"
+
   # Pass normalized dependency outputs (works for all modes: aws/azure/gcp/k8s/byo)
   postgres       = module.postgres
   redis          = module.redis

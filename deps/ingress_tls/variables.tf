@@ -56,7 +56,7 @@ variable "values_cert_manager" {
 variable "acme_environment" {
   description = "Let's Encrypt environment to use for ACME challenges. Valid options: production, staging."
   type        = string
-  default     = "staging"
+  default     = "production"
 
   validation {
     condition     = contains(["production", "staging"], lower(var.acme_environment))

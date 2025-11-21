@@ -190,7 +190,7 @@ locals {
 
   ingress_controller_base = {
     ingressClassResource = { name = "nginx", default = true }
-    service              = { type = "NodePort" }
+    service              = { type = "LoadBalancer" }
     config = {
       "allow-snippet-annotations" = "true"
       "ssl-redirect"              = "false" # Disable global SSL redirect to allow HTTP-01 ACME challenges

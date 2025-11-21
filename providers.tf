@@ -78,38 +78,44 @@ resource "local_file" "kubeconfig" {
 # Kubernetes Provider - uses dedicated kubeconfig file (never ~/.kube/config)
 # Uses host/exec auth directly instead of kubeconfig file to avoid chicken-egg problem
 provider "kubernetes" {
-  host                   = try(module.k8s_cluster.cluster_endpoint, null)
-  cluster_ca_certificate = try(base64decode(module.k8s_cluster.cluster_ca_certificate), null)
+  # For GCP, use the kubeconfig file instead of exec (gke-gcloud-auth-plugin needs context)
+  # Only use config_path if the file actually exists (avoids chicken-egg problem on first apply)
+  config_path = module.k8s_cluster.write_kubeconfig && fileexists(module.k8s_cluster.kubeconfig_path) ? module.k8s_cluster.kubeconfig_path : null
+
+  # For AWS/Azure, use direct connection with exec
+  host                   = module.k8s_cluster.write_kubeconfig ? null : try(module.k8s_cluster.cluster_endpoint, null)
+  cluster_ca_certificate = module.k8s_cluster.write_kubeconfig ? null : try(base64decode(module.k8s_cluster.cluster_ca_certificate), null)
 
   dynamic "exec" {
-    for_each = module.k8s_cluster.provider_exec
+    for_each = module.k8s_cluster.write_kubeconfig ? [] : module.k8s_cluster.provider_exec
     content {
       api_version = exec.value.api_version
       command     = exec.value.command
-      args        = exec.value.args
+      args        = try(exec.value.args, [])
+      env         = try(exec.value.env, {})
     }
   }
-
-  # For BYO mode, use kubeconfig file
-  config_path = module.k8s_cluster.write_kubeconfig ? null : module.k8s_cluster.kubeconfig_path
 }
 
 # Helm Provider - same approach
 provider "helm" {
   kubernetes {
-    host                   = try(module.k8s_cluster.cluster_endpoint, null)
-    cluster_ca_certificate = try(base64decode(module.k8s_cluster.cluster_ca_certificate), null)
+    # For GCP, use the kubeconfig file instead of exec (gke-gcloud-auth-plugin needs context)
+    # Only use config_path if the file actually exists (avoids chicken-egg problem on first apply)
+    config_path = module.k8s_cluster.write_kubeconfig && fileexists(module.k8s_cluster.kubeconfig_path) ? module.k8s_cluster.kubeconfig_path : null
+
+    # For AWS/Azure, use direct connection with exec
+    host                   = module.k8s_cluster.write_kubeconfig ? null : try(module.k8s_cluster.cluster_endpoint, null)
+    cluster_ca_certificate = module.k8s_cluster.write_kubeconfig ? null : try(base64decode(module.k8s_cluster.cluster_ca_certificate), null)
 
     dynamic "exec" {
-      for_each = module.k8s_cluster.provider_exec
+      for_each = module.k8s_cluster.write_kubeconfig ? [] : module.k8s_cluster.provider_exec
       content {
         api_version = exec.value.api_version
         command     = exec.value.command
-        args        = exec.value.args
+        args        = try(exec.value.args, [])
+        env         = try(exec.value.env, {})
       }
     }
-
-    # For BYO mode, use kubeconfig file
-    config_path = module.k8s_cluster.write_kubeconfig ? null : module.k8s_cluster.kubeconfig_path
   }
 }

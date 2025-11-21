@@ -55,11 +55,17 @@ Before starting the deployment, ensure you have the following:
 - **Terraform** (v1.0+) - [Download here](https://www.terraform.io/downloads.html)
 - **kubectl** - [Installation guide](https://kubernetes.io/docs/tasks/tools/)
 - **Helm** (v3.0+) - [Installation guide](https://helm.sh/docs/intro/install/)
-- **AWS CLI** (v2.0+) - [Installation guide](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
+- **Cloud CLI**:
+  - **AWS CLI** (v2.0+) - [Installation guide](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
+  - **gcloud CLI** (for GCP) - [Installation guide](https://cloud.google.com/sdk/docs/install)
+  - **Azure CLI** (for Azure) - [Installation guide](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
 
 ### Required Accounts & Services
 - **SettleMint License** - Contact SettleMint for platform licensing
-- **AWS Account** - With appropriate permissions for EKS, RDS, ElastiCache, S3, Route53, and Cognito
+- **Cloud Account** - Choose one or more:
+  - **AWS Account** - With appropriate permissions for EKS, RDS, ElastiCache, S3, Route53, and Cognito
+  - **GCP Account** - With appropriate permissions for GKE, Cloud SQL, Memorystore, Cloud Storage, and Cloud DNS
+  - **Azure Account** - With appropriate permissions for AKS, PostgreSQL, Redis, Storage, and DNS
 - **Domain Name** - For SSL certificates and platform access (e.g., `yourcompany.com`)
 
 ### AWS Permissions Required
@@ -73,7 +79,130 @@ Your AWS credentials need permissions for:
 - **IAM**: Create/manage roles and policies
 - **VPC**: Create/manage VPCs, subnets, and security groups
 
+### GCP Permissions Required
+Your GCP account needs permissions for:
+- **GKE (Kubernetes Engine)**: Create/manage clusters and node pools
+- **Cloud SQL**: Create/manage PostgreSQL instances
+- **Memorystore**: Create/manage Redis instances
+- **Cloud Storage**: Create/manage buckets and objects
+- **Cloud DNS**: Create/manage DNS zones and records (optional)
+- **Compute Engine**: Create/manage VPCs, subnets, firewall rules, and Cloud NAT
+- **IAM & Service Accounts**: Create/manage service accounts and IAM bindings
+- **Service Networking**: Configure private service connections for Cloud SQL
+
+**Required GCP APIs** (enable these in your project):
+```bash
+gcloud services enable container.googleapis.com         # GKE
+gcloud services enable compute.googleapis.com           # Compute/VPC
+gcloud services enable sqladmin.googleapis.com          # Cloud SQL
+gcloud services enable redis.googleapis.com             # Memorystore Redis
+gcloud services enable storage.googleapis.com           # Cloud Storage
+gcloud services enable dns.googleapis.com               # Cloud DNS
+gcloud services enable servicenetworking.googleapis.com # Private networking
+```
+
+**Required GCP IAM Roles for Terraform Service Account:**
+
+The service account used by Terraform needs the following roles. You can create a service account and grant these permissions:
+
+```bash
+# Create service account
+gcloud iam service-accounts create btp-universal-terraform \
+  --display-name="BTP Universal Terraform Deployer" \
+  --project=YOUR_PROJECT_ID
+
+# Grant required roles
+PROJECT_ID="YOUR_PROJECT_ID"
+SA_EMAIL="btp-universal-terraform@${PROJECT_ID}.iam.gserviceaccount.com"
+
+# Core infrastructure roles
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member="serviceAccount:${SA_EMAIL}" \
+  --role="roles/compute.admin"                    # VPC, networks, firewalls, NAT
+
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member="serviceAccount:${SA_EMAIL}" \
+  --role="roles/container.admin"                  # GKE clusters and node pools
+
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member="serviceAccount:${SA_EMAIL}" \
+  --role="roles/cloudsql.admin"                   # Cloud SQL PostgreSQL instances
+
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member="serviceAccount:${SA_EMAIL}" \
+  --role="roles/redis.admin"                      # Memorystore Redis instances
+
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member="serviceAccount:${SA_EMAIL}" \
+  --role="roles/storage.admin"                    # Cloud Storage buckets
+
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member="serviceAccount:${SA_EMAIL}" \
+  --role="roles/dns.admin"                        # Cloud DNS zones and records
+
+# IAM and security roles
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member="serviceAccount:${SA_EMAIL}" \
+  --role="roles/iam.serviceAccountAdmin"          # Create/manage service accounts
+
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member="serviceAccount:${SA_EMAIL}" \
+  --role="roles/iam.serviceAccountTokenCreator"   # Create HMAC keys for storage
+
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member="serviceAccount:${SA_EMAIL}" \
+  --role="roles/resourcemanager.projectIamAdmin"  # Manage IAM bindings
+
+# Grant service account user role on compute default service account
+gcloud iam service-accounts add-iam-policy-binding \
+  $(gcloud projects describe $PROJECT_ID --format="value(projectNumber)")-compute@developer.gserviceaccount.com \
+  --member="serviceAccount:${SA_EMAIL}" \
+  --role="roles/iam.serviceAccountUser" \
+  --project=$PROJECT_ID
+
+# Create and download JSON key
+gcloud iam service-accounts keys create ~/btp-terraform-gcp-key.json \
+  --iam-account="${SA_EMAIL}"
+
+echo "✓ Service account created with all required permissions"
+echo "✓ Key saved to ~/btp-terraform-gcp-key.json"
+echo ""
+echo "Store this key securely (e.g., in 1Password) and set GOOGLE_CLOUD_KEYFILE_JSON in your .env file"
+```
+
+**Running with User Credentials (Alternative to Service Account):**
+
+If you're running Terraform with your own user credentials (via `gcloud auth application-default login`) instead of a service account, you need `iam.serviceAccountUser` permission on the GKE node service account that Terraform creates. After the first `terraform apply` fails with a permission error, run:
+
+```bash
+gcloud iam service-accounts add-iam-policy-binding \
+  btp-gke-nodes@YOUR_PROJECT_ID.iam.gserviceaccount.com \
+  --member="user:YOUR_EMAIL@example.com" \
+  --role="roles/iam.serviceAccountUser"
+```
+
+Then re-run `terraform apply`.
+
+**Role Purpose Breakdown:**
+
+| Role | Purpose | Required For |
+|------|---------|-------------|
+| `roles/compute.admin` | Manage VPC networks, subnets, firewalls, Cloud NAT | GKE networking, custom VPCs |
+| `roles/container.admin` | Create and manage GKE clusters, node pools, and configurations | GKE cluster deployment |
+| `roles/cloudsql.admin` | Create and manage Cloud SQL instances, databases, and users | PostgreSQL database |
+| `roles/redis.admin` | Create and manage Memorystore Redis instances | Redis cache |
+| `roles/storage.admin` | Create buckets, manage objects, create HMAC keys | Object storage for artifacts |
+| `roles/dns.admin` | Create DNS zones and manage DNS records | Domain management (optional) |
+| `roles/iam.serviceAccountAdmin` | Create service accounts for GKE nodes and storage access | GKE node service accounts |
+| `roles/iam.serviceAccountTokenCreator` | Generate HMAC keys for Cloud Storage S3-compatible access | Storage credentials |
+| `roles/resourcemanager.projectIamAdmin` | Grant IAM roles to service accounts | GKE node permissions |
+| `roles/iam.serviceAccountUser` (on compute SA) | Allow using the default compute service account | GKE cluster creation |
+
 ## Step-by-Step Deployment Guide
+
+This repository supports deployment to **AWS**, **GCP**, and **Azure**. Choose your target platform:
+
+### AWS Deployment
 
 Follow these steps to deploy SettleMint BTP on AWS:
 
@@ -311,6 +440,288 @@ post_deploy_urls = {
 **Login Credentials:**
 - Use the Cognito user created in Step 6
 - Platform URL: `https://yourdomain.com`
+
+---
+
+### GCP Deployment
+
+Follow these steps to deploy SettleMint BTP on Google Cloud Platform:
+
+#### Step 1: Get SettleMint License
+
+Same as AWS - Contact SettleMint to obtain your platform license parameters.
+
+#### Step 2: Set Up GCP Project
+
+**Create or Select a GCP Project:**
+```bash
+# List existing projects
+gcloud projects list
+
+# Create a new project (optional)
+gcloud projects create YOUR_PROJECT_ID --name="BTP Platform"
+
+# Set the active project
+gcloud config set project YOUR_PROJECT_ID
+
+# Enable billing for the project (required)
+# Go to: https://console.cloud.google.com/billing
+```
+
+**Install gcloud CLI:**
+- Download from: https://cloud.google.com/sdk/docs/install
+- Or use package manager:
+  ```bash
+  # macOS
+  brew install google-cloud-sdk
+
+  # Linux (Ubuntu/Debian)
+  sudo apt-get install google-cloud-sdk
+  ```
+
+#### Step 3: Authenticate with GCP
+
+```bash
+# Authenticate your user account
+gcloud auth login
+
+# Set up application default credentials for Terraform
+gcloud auth application-default login
+
+# Verify authentication
+gcloud auth list
+```
+
+#### Step 4: Enable Required GCP APIs
+
+```bash
+# Enable all required APIs
+gcloud services enable container.googleapis.com         # GKE
+gcloud services enable compute.googleapis.com           # Compute/VPC
+gcloud services enable sqladmin.googleapis.com          # Cloud SQL
+gcloud services enable redis.googleapis.com             # Memorystore Redis
+gcloud services enable storage.googleapis.com           # Cloud Storage
+gcloud services enable dns.googleapis.com               # Cloud DNS (optional)
+gcloud services enable servicenetworking.googleapis.com # Private networking
+
+# Verify APIs are enabled
+gcloud services list --enabled
+```
+
+#### Step 5: Set Up DNS with Cloud DNS (Optional)
+
+**Create a DNS Managed Zone:**
+```bash
+# Create managed zone
+gcloud dns managed-zones create btp-zone \
+  --dns-name="yourdomain.com." \
+  --description="BTP Platform DNS Zone"
+
+# Get nameservers
+gcloud dns managed-zones describe btp-zone --format="value(nameServers)"
+```
+
+**Update Domain Registrar:**
+1. Copy the Cloud DNS nameservers from the output above
+2. Log into your domain registrar (GoDaddy, Namecheap, etc.)
+3. Update your domain's nameservers to use the Cloud DNS nameservers
+4. Wait 24-48 hours for DNS propagation
+
+**Verify DNS Setup:**
+```bash
+# Check if nameservers are updated
+dig NS yourdomain.com
+```
+
+#### Step 6: Configure Your Deployment
+
+**Clone the repository and create configuration:**
+```bash
+# Copy the example configuration
+cp examples/gcp-config.tfvars my-gcp-deployment.tfvars
+
+# Edit the configuration file
+# Update the following in my-gcp-deployment.tfvars:
+# - All instances of "my-gcp-project" with YOUR_PROJECT_ID
+# - base_domain with your actual domain
+# - region with your preferred GCP region (e.g., us-central1, europe-west1)
+```
+
+**Key GCP-specific settings to configure:**
+```hcl
+platform = "gcp"
+base_domain = "yourdomain.com"
+
+k8s_cluster = {
+  mode = "gcp"
+  gcp = {
+    project_id         = "YOUR_PROJECT_ID"
+    cluster_name       = "btp-cluster"
+    region             = "us-central1"
+    kubernetes_version = "1.31"
+
+    node_pools = {
+      default = {
+        machine_type   = "e2-standard-4"  # 4 vCPU, 16GB RAM
+        min_node_count = 1
+        max_node_count = 10
+        auto_scaling   = true
+      }
+    }
+  }
+}
+
+postgres = {
+  mode = "gcp"
+  gcp = {
+    project_id       = "YOUR_PROJECT_ID"
+    instance_name    = "btp-postgres"
+    tier             = "db-custom-2-7680" # 2 vCPU, 7.5GB RAM
+    availability_type = "REGIONAL"        # High availability
+  }
+}
+
+redis = {
+  mode = "gcp"
+  gcp = {
+    project_id     = "YOUR_PROJECT_ID"
+    instance_name  = "btp-redis"
+    tier           = "STANDARD_HA" # High availability
+    memory_size_gb = 5
+  }
+}
+
+object_storage = {
+  mode = "gcp"
+  gcp = {
+    project_id  = "YOUR_PROJECT_ID"
+    location    = "US" # Multi-region
+  }
+}
+```
+
+#### Step 7: Set Environment Variables
+
+**Create `.env` file:**
+```bash
+# Copy the example
+cp .env.example .env
+
+# Edit .env and set these required variables:
+TF_VAR_postgres_password="your-secure-password-min-8-chars"
+TF_VAR_redis_password="your-secure-password-min-16-chars"
+TF_VAR_grafana_admin_password="your-secure-password-min-12-chars"
+TF_VAR_oauth_admin_password="your-secure-password-min-16-chars"
+
+# Platform secrets (generate random strings)
+TF_VAR_jwt_signing_key="random-32-character-string-here"
+TF_VAR_state_encryption_key="random-32-character-string-here"
+TF_VAR_ipfs_cluster_secret="64-character-hexadecimal-string"
+
+# License credentials from Step 1
+TF_VAR_license_username="your-license-username"
+TF_VAR_license_password="your-license-password"
+TF_VAR_license_signature="your-license-signature"
+TF_VAR_license_email="your-email@example.com"
+TF_VAR_license_expiration_date="2025-12-31"
+```
+
+**Load environment variables:**
+```bash
+set -a
+source .env
+set +a
+```
+
+#### Step 8: Initialize Terraform
+
+```bash
+# Initialize Terraform
+terraform init
+
+# Validate configuration
+terraform validate
+
+# Review the deployment plan
+terraform plan -var-file=my-gcp-deployment.tfvars
+```
+
+#### Step 9: Deploy Infrastructure
+
+```bash
+# Apply the configuration
+terraform apply -var-file=my-gcp-deployment.tfvars
+
+# Type 'yes' when prompted to confirm
+```
+
+**Expected deployment time:** ~20-25 minutes
+- GKE cluster creation: ~10 minutes
+- Cloud SQL instance: ~8 minutes
+- Memorystore Redis: ~5 minutes
+- Kubernetes workloads: ~5 minutes
+
+#### Step 10: Configure kubectl
+
+```bash
+# Get GKE credentials
+gcloud container clusters get-credentials btp-cluster \
+  --region=us-central1 \
+  --project=YOUR_PROJECT_ID
+
+# Verify connection
+kubectl get nodes
+kubectl get namespaces
+```
+
+#### Step 11: Verify Deployment
+
+**Check infrastructure status:**
+```bash
+# View Terraform outputs
+terraform output
+
+# Check GKE cluster
+gcloud container clusters describe btp-cluster --region=us-central1
+
+# Check Cloud SQL
+gcloud sql instances describe btp-postgres
+
+# Check Memorystore Redis
+gcloud redis instances describe btp-redis --region=us-central1
+
+# Check all pods are running
+kubectl get pods -A
+```
+
+**Get access URLs:**
+```bash
+# Get Grafana URL (monitoring)
+kubectl get ingress -n btp-deps grafana-ingress
+
+# Get platform URL
+kubectl get ingress -n settlemint
+```
+
+#### Step 12: Access the Platform
+
+Once DNS has propagated (if configured), access your platform:
+- **Platform URL**: `https://yourdomain.com`
+- **Grafana**: `https://grafana.yourdomain.com`
+
+**Initial Setup:**
+1. Access the platform URL in your browser
+2. Complete the Google OAuth setup (see GCP Console > APIs & Services > Credentials)
+3. Create your first administrator user
+4. Start deploying blockchain networks!
+
+### GCP Testing Guide
+
+For a minimal test deployment (without production workloads), see the [GCP Testing Guide](./GCP_TESTING_GUIDE.md) which includes:
+- Automated testing script (`./test-gcp.sh`)
+- Minimal configuration example (`test-gcp.tfvars`)
+- Cost estimates for testing (~$120-200/month)
+- Step-by-step troubleshooting
 
 ## Troubleshooting
 
