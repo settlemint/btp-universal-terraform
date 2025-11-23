@@ -39,6 +39,21 @@ This repository provides a consistent Terraform flow to provision BTP platform d
 
 For deeper guidance, dive into the in-repo docs starting at [`docs/README.md`](./docs/README.md).
 
+### Cloud Provider Support
+
+Full managed service implementations across all major cloud providers:
+
+| Component      | AWS                     | Azure                        | GCP                    |
+|----------------|-------------------------|------------------------------|------------------------|
+| Networking     | VPC                     | Virtual Network              | VPC Network            |
+| Kubernetes     | EKS                     | AKS                          | GKE                    |
+| PostgreSQL     | RDS                     | Database for PostgreSQL      | Cloud SQL              |
+| Redis          | ElastiCache             | Cache for Redis              | Memorystore            |
+| Object Storage | S3                      | Blob Storage                 | Cloud Storage          |
+| OAuth          | Cognito                 | Azure AD                     | Identity Platform      |
+| Secrets        | Secrets Manager         | Key Vault                    | Secret Manager         |
+| DNS            | Route53                 | Azure DNS                    | Cloud DNS              |
+
 ### Key Features
 
 - Unified module layout for dependencies with three modes: k8s (Helm) | managed (cloud) | byo (external)
